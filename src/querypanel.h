@@ -23,6 +23,7 @@ private:
     wxTextCtrl  *m_searchText;
     wxTextCtrl  *m_resultText;
     wxButton    *m_searchTrigger;
+    wxButton    *m_closeTrigger;
 
     virtual void OnFind(wxCommandEvent& evt);
     virtual void OnEnterKey(wxKeyEvent& evt);

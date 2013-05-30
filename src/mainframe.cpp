@@ -3,7 +3,7 @@
 #include "querypanel.h"
 #include "connectiondialog.h"
 
-MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(750, 450))
+MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(550, 650))
 {
     InitializeMenubar();
     InitializeControls();
@@ -28,7 +28,7 @@ void MainFrame::InitializeMenubar()
     m_fileMenu = new wxMenu();
     m_fileMenu->Append(ID_MENU_CONNECT, wxT("Connect..."));
     m_fileMenu->AppendSeparator();
-    m_fileMenu->Append(ID_MENU_SETTINGS, wxT("Settings..."));
+    m_fileMenu->Append(ID_MENU_SETTINGS, wxT("Settings..."))->Enable(false);
     m_fileMenu->AppendSeparator();
     m_fileMenu->Append(wxID_EXIT, wxT("E&xit"));
 

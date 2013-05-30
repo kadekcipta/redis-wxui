@@ -1,7 +1,7 @@
 #include "connectiondialog.h"
 
 ConnectionDialog::ConnectionDialog(wxWindow *parent, const wxString& title):
-    wxDialog(parent, wxID_ANY, title,  wxDefaultPosition, wxDefaultSize)
+    wxDialog(parent, wxID_ANY, title,  wxDefaultPosition, wxSize(400,150))
 {
     wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
 
@@ -15,7 +15,7 @@ ConnectionDialog::ConnectionDialog(wxWindow *parent, const wxString& title):
     hboxRemotePort->Add(new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0, wxTextValidator(wxFILTER_EMPTY | wxFILTER_DIGITS)), 4, wxALIGN_LEFT );
     vbox->Add(hboxRemotePort, 0, wxEXPAND | wxALL, 10);
 
-    vbox->Add(-1, -1, wxEXPAND);
+//    vbox->Add(-1, -1, wxEXPAND);
     wxBoxSizer *hboxButtons = new wxBoxSizer(wxHORIZONTAL);
     hboxButtons->Add(new wxButton(this, wxID_OK, wxT("OK")), 0, wxRIGHT, 5);
     hboxButtons->Add(new wxButton(this, wxID_CANCEL, wxT("Cancel")), 0, wxBOTTOM);

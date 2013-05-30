@@ -6,16 +6,18 @@ QueryPanel::QueryPanel(wxWindow *parent, RedisConnection *connection):
     wxPanel(parent), m_connection(connection)
 {
     m_searchText = new wxTextCtrl(this, ID_TEXT_FIND, "", wxDefaultPosition, wxSize(-1, 28), wxTE_PROCESS_ENTER, wxDefaultValidator);
-    m_searchTrigger = new wxButton(this, ID_COMMAND_FIND, wxT("Search"), wxPoint(-1,-1), wxSize(-1, 28));
+    m_searchTrigger = new wxButton(this, ID_COMMAND_FIND, wxT("Find Keys"), wxPoint(-1,-1), wxSize(-1, 28));
+    m_closeTrigger = new wxButton(this, wxID_CLOSE, wxT("Disconnect"), wxPoint(-1,-1), wxSize(-1, 28));
     m_resultText = new wxTextCtrl(this, 101, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE, wxDefaultValidator);
 
     wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
     hbox->Add(m_searchText, 1, wxEXPAND);
-    hbox->Add(m_searchTrigger, 0);
+    hbox->Add(m_searchTrigger, 0, wxRIGHT, 3);
+    hbox->Add(m_closeTrigger, 0);
 
     wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
-    vbox->Add(hbox, 0, wxALIGN_LEFT | wxEXPAND);
-    vbox->Add(m_resultText, 1, wxEXPAND, 3);
+    vbox->Add(hbox, 0, wxALIGN_LEFT | wxEXPAND | wxALL, 3);
+    vbox->Add(m_resultText, 1, wxEXPAND | wxALL & ~wxTOP, 3);
     SetSizer(vbox);
 
     Connect(ID_COMMAND_FIND, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(QueryPanel::OnFind));

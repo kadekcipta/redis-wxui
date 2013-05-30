@@ -11,8 +11,7 @@ IMPLEMENT_APP(MyApp)
 
 bool MyApp::OnInit()
 {
-
-    MainFrame *f = new MainFrame(wxT("Hello wxWidgets 2013!"));
+    MainFrame *f = new MainFrame(wxT("Damn Simple Redis UI"));
     f->Show();
 
     return true;
