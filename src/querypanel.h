@@ -1,7 +1,13 @@
 #ifndef QUERYPANEL_H
 #define QUERYPANEL_H
 
-#include <wx/wx.h>
+#include <wx/wxprec.h>
+#ifndef WX_PRECOMP
+    #include <wx/wx.h>
+#endif
+
+#include "redisconnection.h"
+
 #include "hiredis/hiredis.h"
 
 enum {
@@ -12,6 +18,8 @@ enum {
 class QueryPanel : public wxPanel
 {
 private:
+    RedisConnection *m_connection;
+
     wxTextCtrl  *m_searchText;
     wxTextCtrl  *m_resultText;
     wxButton    *m_searchTrigger;
@@ -25,7 +33,8 @@ protected:
     virtual void DoFindKeys(const wxString& keyPatterns);
 
 public:
-    QueryPanel(wxWindow *parent);
+    QueryPanel(wxWindow *parent, RedisConnection *connection);
+    virtual ~QueryPanel();
 
     wxString GetSearchText() const;
 };

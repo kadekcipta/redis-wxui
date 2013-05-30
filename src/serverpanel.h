@@ -1,7 +1,10 @@
 #ifndef SERVERPANEL_H
 #define SERVERPANEL_H
 
-#include <wx/wx.h>
+#include <wx/wxprec.h>
+#ifndef WX_PRECOMP
+    #include <wx/wx.h>
+#endif
 
 class ServerPanel : public wxPanel
 {

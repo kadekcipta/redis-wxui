@@ -1,6 +1,7 @@
 #include "mainframe.h"
 #include "serverpanel.h"
 #include "querypanel.h"
+#include "connectiondialog.h"
 
 MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(750, 450))
 {
@@ -12,7 +13,13 @@ MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDe
 
 void MainFrame::InitializeControls()
 {
-    m_queryPanel = new QueryPanel(this);
+    m_mainTab = new wxNotebook(this, ID_MAIN_TAB);
+    RedisConnection *connection = new RedisConnection("127.0.0.1");
+    m_queryPanel = new QueryPanel(m_mainTab, connection);
+    m_mainTab->AddPage(m_queryPanel, connection->GetTitle());
+
+    RedisConnection *connection2 = new RedisConnection("127.0.0.1");
+    m_mainTab->AddPage(new QueryPanel(m_mainTab, connection2), connection2->GetTitle());
 }
 
 void MainFrame::InitializeMenubar()
@@ -36,12 +43,26 @@ void MainFrame::InitializeMenubar()
 
     // wire events
     Connect(wxID_EXIT, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::OnQuit));
+    Connect(ID_MENU_CONNECT, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::OnAddConnection));
     Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(MainFrame::OnClose));
+}
+
+void MainFrame::AddConnection()
+{
+    ConnectionDialog dlg(this, wxT("Add Connection"));
+    if (dlg.ShowModal() == wxID_OK)
+    {
+
+    }
+}
+
+void MainFrame::OnAddConnection(wxCommandEvent &evt)
+{
+    AddConnection();
 }
 
 void MainFrame::OnQuit(wxCommandEvent& evt)
 {
-    // TODO: cleanups resources
     Close();
 }
 

@@ -2,7 +2,8 @@
 #include "wx/wx.h"
 #include "hiredis/hiredis.h"
 
-QueryPanel::QueryPanel(wxWindow *parent): wxPanel(parent)
+QueryPanel::QueryPanel(wxWindow *parent, RedisConnection *connection):
+    wxPanel(parent), m_connection(connection)
 {
     m_searchText = new wxTextCtrl(this, ID_TEXT_FIND, "", wxDefaultPosition, wxSize(-1, 28), wxTE_PROCESS_ENTER, wxDefaultValidator);
     m_searchTrigger = new wxButton(this, ID_COMMAND_FIND, wxT("Search"), wxPoint(-1,-1), wxSize(-1, 28));
@@ -19,6 +20,15 @@ QueryPanel::QueryPanel(wxWindow *parent): wxPanel(parent)
 
     Connect(ID_COMMAND_FIND, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(QueryPanel::OnFind));
     Connect(ID_TEXT_FIND, wxEVT_COMMAND_TEXT_ENTER, wxKeyEventHandler(QueryPanel::OnEnterKey));
+}
+
+QueryPanel::~QueryPanel()
+{
+    if (m_connection != NULL)
+    {
+        delete m_connection;
+        m_connection = NULL;
+    }
 }
 
 wxString QueryPanel::GetSearchText() const
@@ -55,7 +65,7 @@ void QueryPanel::IterateArrayResponse(redisReply **response, size_t length)
 
 void QueryPanel::DoFindKeys(const wxString& keyPatterns)
 {
-    redisContext *ctx = redisConnect("192.168.1.11", 6379);
+    redisContext *ctx = redisConnect("127.0.0.1", 6379);
 
     wxString realPatterns = keyPatterns;
     realPatterns.Trim();
