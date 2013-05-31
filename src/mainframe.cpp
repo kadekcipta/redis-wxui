@@ -3,23 +3,16 @@
 #include "querypanel.h"
 #include "connectiondialog.h"
 
-MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(550, 650))
+MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(950, 700))
 {
     InitializeMenubar();
     InitializeControls();
-
     Center();
 }
 
 void MainFrame::InitializeControls()
 {
     m_mainTab = new wxNotebook(this, ID_MAIN_TAB);
-    RedisConnection *connection = new RedisConnection("127.0.0.1");
-    m_queryPanel = new QueryPanel(m_mainTab, connection);
-    m_mainTab->AddPage(m_queryPanel, connection->GetTitle());
-
-    RedisConnection *connection2 = new RedisConnection("127.0.0.1");
-    m_mainTab->AddPage(new QueryPanel(m_mainTab, connection2), connection2->GetTitle());
 }
 
 void MainFrame::InitializeMenubar()
@@ -32,11 +25,16 @@ void MainFrame::InitializeMenubar()
     m_fileMenu->AppendSeparator();
     m_fileMenu->Append(wxID_EXIT, wxT("E&xit"));
 
+    m_editMenu = new wxMenu();
+    m_editMenu->Append(ID_MENU_MODIFY_VALUE, wxT("Modify Value..."))->Enable(false);
+    m_editMenu->Append(ID_MENU_DELETE, wxT("Delete Key"))->Enable(false);
+
     m_helpMenu = new wxMenu();
     m_helpMenu->Append(ID_MENU_ABOUT, wxT("About..."));
 
     m_menubar = new wxMenuBar();
     m_menubar->Append(m_fileMenu, wxT("&File"));
+    m_menubar->Append(m_editMenu, wxT("&Edit"));
     m_menubar->Append(m_helpMenu, wxT("&Help"));
 
     SetMenuBar(m_menubar);
@@ -52,7 +50,20 @@ void MainFrame::AddConnection()
     ConnectionDialog dlg(this, wxT("Add Connection"));
     if (dlg.ShowModal() == wxID_OK)
     {
+        RedisConnection *connection = new RedisConnection(dlg.GetRemoteHostName(), dlg.GetRemotePort());
+        if (connection->Connect())
+        {
+            // query panel will take connection ownership
+            QueryPanel *qpanel = new QueryPanel(m_mainTab, connection);
+            m_mainTab->AddPage(qpanel, connection->GetTitle());
+        }
+        else
+        {
+            wxString message = connection->GetLastError();
+            delete connection;
 
+            wxMessageBox(message);
+        }
     }
 }
 

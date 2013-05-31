@@ -8,6 +8,10 @@
 
 class ConnectionDialog : public wxDialog
 {
+private:
+    wxTextCtrl  *m_remoteHost;
+    wxTextCtrl  *m_remotePort;
+
 public:
     ConnectionDialog(wxWindow *parent, const wxString& title);
 

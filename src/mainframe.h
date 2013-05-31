@@ -12,6 +12,8 @@ enum {
     ID_MENU_CONNECT,
     ID_MENU_QUERY,
     ID_MENU_SETTINGS,
+    ID_MENU_MODIFY_VALUE,
+    ID_MENU_DELETE,
     ID_MENU_ABOUT
 };
 
@@ -24,6 +26,7 @@ private:
     wxNotebook *m_mainTab;
 
     wxMenu  *m_fileMenu;
+    wxMenu  *m_editMenu;
     wxMenu  *m_helpMenu;
 
     wxMenuBar   *m_menubar;
