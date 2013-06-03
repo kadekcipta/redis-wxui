@@ -2,6 +2,7 @@
 #include "serverpanel.h"
 #include "querypanel.h"
 #include "connectiondialog.h"
+#include "res/network.xpm"
 
 MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(950, 500))
 {
@@ -38,6 +39,17 @@ void MainFrame::InitializeMenubar()
     m_menubar->Append(m_helpMenu, wxT("&Help"));
 
     SetMenuBar(m_menubar);
+
+    m_statusBar = new wxStatusBar(this, ID_MAIN_STATUS_BAR);
+    SetStatusBar(m_statusBar);
+
+    wxToolBar *toolbar = new wxToolBar(this, ID_MAIN_TOOL_BAR);
+    long style = toolbar->GetWindowStyle() | wxTB_TEXT;
+    toolbar->SetWindowStyle(style);
+
+    wxBitmap bm(network_xpm);
+    toolbar->AddTool(ID_MENU_CONNECT, wxT("Connect"), bm);
+    SetToolBar(toolbar);
 
     // wire events
     Connect(wxID_EXIT, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::OnQuit));

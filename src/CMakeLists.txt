@@ -1,3 +1,4 @@
+add_subdirectory(res)
 include_directories(/usr/local/include)
 link_directories(/usr/local/lib /usr/lib)
 set(HIREDIS_STATIC_LIB libhiredis.a)

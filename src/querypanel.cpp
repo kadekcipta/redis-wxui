@@ -17,7 +17,7 @@ QueryPanel::QueryPanel(wxWindow *parent, RedisConnection *connection):
     m_searchText = new wxTextCtrl(leftPanel, ID_TEXT_FIND, "", wxDefaultPosition, wxSize(-1, 28), wxTE_PROCESS_ENTER, wxDefaultValidator);
     m_valueText = new wxTextCtrl(rightPanel, ID_TEXT_FIND, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
     m_valueText->SetEditable(false);
-    m_valueText->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INFOBK));
+//    m_valueText->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INFOBK));
 
     m_searchTrigger = new wxButton(leftPanel, ID_COMMAND_FIND, wxT("Find Keys"), wxPoint(-1,-1), wxSize(-1, 28));
     m_closeTrigger = new wxButton(leftPanel, ID_COMMAND_DISCONNECT, wxT("Disconnect"), wxPoint(-1,-1), wxSize(-1, 28));

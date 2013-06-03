@@ -9,6 +9,8 @@
 
 enum {
     ID_MAIN_TAB = 100,
+    ID_MAIN_STATUS_BAR,
+    ID_MAIN_TOOL_BAR,
     ID_MENU_CONNECT,
     ID_MENU_QUERY,
     ID_MENU_SETTINGS,
@@ -24,6 +26,7 @@ private:
     wxPanel *m_serverPanel;
     wxPanel *m_queryPanel;
     wxNotebook *m_mainTab;
+    wxStatusBar *m_statusBar;
 
     wxMenu  *m_fileMenu;
     wxMenu  *m_editMenu;
