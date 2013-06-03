@@ -3,7 +3,7 @@
 #include "querypanel.h"
 #include "connectiondialog.h"
 
-MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(950, 700))
+MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(950, 500))
 {
     InitializeMenubar();
     InitializeControls();

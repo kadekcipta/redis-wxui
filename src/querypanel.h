@@ -6,13 +6,17 @@
     #include <wx/wx.h>
 #endif
 
+#include <wx/grid.h>
+
 #include "redisconnection.h"
 
 
 enum {
     ID_COMMAND_FIND = 200,
+    ID_COMMAND_UPDATE,
     ID_TEXT_FIND,
     ID_LIST_RESULT,
+    ID_GRID_INFO,
     ID_COMMAND_DISCONNECT
 };
 
@@ -25,6 +29,7 @@ private:
     wxListBox   *m_resultList;
     wxButton    *m_searchTrigger;
     wxButton    *m_closeTrigger;
+    wxButton    *m_updateTrigger;
 
     virtual void OnFind(wxCommandEvent& evt);
     virtual void OnEnterKey(wxKeyEvent& evt);
