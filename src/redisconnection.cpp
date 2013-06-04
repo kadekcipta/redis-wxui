@@ -1,5 +1,6 @@
 #include "redisconnection.h"
 #include <sys/time.h>
+#include <wx/tokenzr.h>
 
 RedisConnection::RedisConnection(const wxString& remoteHost, int remotePort, const wxString& title):
     m_remoteHost(remoteHost), m_remotePort(remotePort), m_title(title), m_redisContext(NULL)
@@ -124,4 +125,29 @@ int RedisConnection::FindKV(const wxString& keyPatterns)
     }
 
     return nRet;
+}
+
+
+wxString RedisConnection::GetServerInfo()
+{
+    redisReply *reply = (redisReply*)redisCommand(m_redisContext, "INFO");
+    if (reply != NULL)
+    {
+        wxArrayString tokens;
+
+        if (reply->type == REDIS_REPLY_STRING)
+        {
+            tokens = wxStringTokenize(reply->str, "\r\n");
+        }
+
+        freeReplyObject(reply);
+
+        for (int i = 0; i < tokens.Count(); i++)
+        {
+            wxSafeShowMessage("Info", tokens[i]);
+        }
+
+    }
+
+    return "";
 }

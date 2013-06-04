@@ -17,7 +17,7 @@ QueryPanel::QueryPanel(wxWindow *parent, RedisConnection *connection):
     m_searchText = new wxTextCtrl(leftPanel, ID_TEXT_FIND, "", wxDefaultPosition, wxSize(-1, 28), wxTE_PROCESS_ENTER, wxDefaultValidator);
     m_valueText = new wxTextCtrl(rightPanel, ID_TEXT_FIND, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
     m_valueText->SetEditable(false);
-//    m_valueText->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INFOBK));
+    m_valueText->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_APPWORKSPACE));
 
     m_searchTrigger = new wxButton(leftPanel, ID_COMMAND_FIND, wxT("Find Keys"), wxPoint(-1,-1), wxSize(-1, 28));
     m_closeTrigger = new wxButton(leftPanel, ID_COMMAND_DISCONNECT, wxT("Disconnect"), wxPoint(-1,-1), wxSize(-1, 28));
@@ -32,14 +32,14 @@ QueryPanel::QueryPanel(wxWindow *parent, RedisConnection *connection):
     hboxSearch->Add(m_closeTrigger, 0);
 
     wxBoxSizer *hboxEditControls = new wxBoxSizer(wxHORIZONTAL);
-    hboxEditControls->Add(m_updateTrigger, 0);
+    hboxEditControls->Add(m_updateTrigger, 0, wxALIGN_RIGHT);
 
     wxBoxSizer *vboxLeft = new wxBoxSizer(wxVERTICAL);
     vboxLeft->Add(hboxSearch, 0, wxALIGN_LEFT | wxEXPAND);
     vboxLeft->Add(m_resultList, 1, wxEXPAND | wxTOP, 3);
 
     wxBoxSizer *vboxRight = new wxBoxSizer(wxVERTICAL);
-    vboxRight->Add(hboxEditControls, 0, wxEXPAND);
+    vboxRight->Add(hboxEditControls, 0, wxALIGN_RIGHT);
     vboxRight->Add(m_valueText, 1, wxEXPAND | wxTOP, 3);
 
     wxBoxSizer *hboxMain = new wxBoxSizer(wxHORIZONTAL);
@@ -96,6 +96,8 @@ void QueryPanel::OnKeySelected(wxCommandEvent &evt)
 void QueryPanel::OnFind(wxCommandEvent& evt)
 {
     DoFindKeys(GetSearchText());
+
+    m_connection->GetServerInfo();
 }
 
 void QueryPanel::OnEnterKey(wxKeyEvent& evt)

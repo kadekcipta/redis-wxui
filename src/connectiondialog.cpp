@@ -3,6 +3,33 @@
 ConnectionDialog::ConnectionDialog(wxWindow *parent, const wxString& title):
     wxDialog(parent, wxID_ANY, title,  wxDefaultPosition, wxSize(400,150))
 {
+    Connect(wxEVT_INIT_DIALOG, wxInitDialogEventHandler(ConnectionDialog::OnInitDialog));
+}
+
+wxString ConnectionDialog::GetRemoteHostName() const
+{
+    return m_remoteHost->GetValue();
+}
+
+int ConnectionDialog::GetRemotePort() const
+{
+    wxString portValue = m_remotePort->GetValue();
+    if (portValue == "")
+    {
+        portValue = "6379";
+    }
+
+    long port = 6379;
+    if (!portValue.ToLong(&port))
+        return 6389;
+
+    return (int)port;
+}
+
+
+void ConnectionDialog::OnInitDialog(wxInitDialogEvent &event)
+{
+    wxDialog::OnInitDialog(event);
     wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
 
     wxBoxSizer *hboxRemoteHost = new wxBoxSizer(wxHORIZONTAL);
@@ -25,24 +52,4 @@ ConnectionDialog::ConnectionDialog(wxWindow *parent, const wxString& title):
 
     SetSizer(vbox);
     Center();
-}
-
-wxString ConnectionDialog::GetRemoteHostName() const
-{
-    return m_remoteHost->GetValue();
-}
-
-int ConnectionDialog::GetRemotePort() const
-{
-    wxString portValue = m_remotePort->GetValue();
-    if (portValue == "")
-    {
-        portValue = "6379";
-    }
-
-    long port = 6379;
-    if (!portValue.ToLong(&port))
-        return 6389;
-
-    return (int)port;
 }

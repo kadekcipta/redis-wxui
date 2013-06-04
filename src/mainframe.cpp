@@ -2,6 +2,7 @@
 #include "serverpanel.h"
 #include "querypanel.h"
 #include "connectiondialog.h"
+#include "kveditor.h"
 #include "res/network.xpm"
 
 MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(950, 500))
@@ -22,6 +23,7 @@ void MainFrame::InitializeMenubar()
     m_fileMenu = new wxMenu();
     m_fileMenu->Append(ID_MENU_CONNECT, wxT("Connect..."));
     m_fileMenu->AppendSeparator();
+    m_fileMenu->Append(ID_MENU_ADD_KV, wxT("Add Key-Value Pair..."));
     m_fileMenu->Append(ID_MENU_SETTINGS, wxT("Settings..."))->Enable(false);
     m_fileMenu->AppendSeparator();
     m_fileMenu->Append(wxID_EXIT, wxT("E&xit"));
@@ -49,12 +51,20 @@ void MainFrame::InitializeMenubar()
 
     wxBitmap bm(network_xpm);
     toolbar->AddTool(ID_MENU_CONNECT, wxT("Connect"), bm);
+    toolbar->AddSeparator();
     SetToolBar(toolbar);
 
     // wire events
     Connect(wxID_EXIT, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::OnQuit));
     Connect(ID_MENU_CONNECT, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::OnAddConnection));
+    Connect(ID_MENU_ADD_KV, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::OnAddKeyValuePair));
     Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(MainFrame::OnClose));
+}
+
+void MainFrame::OnAddKeyValuePair(wxCommandEvent &evt)
+{
+    KVEditor dlg(this, wxT("Add Key-Value Pair"));
+    dlg.ShowModal();
 }
 
 void MainFrame::AddConnection()
@@ -91,16 +101,24 @@ void MainFrame::OnQuit(wxCommandEvent& evt)
 
 void MainFrame::OnClose(wxCloseEvent &evt)
 {
-    wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Are you sure to quit?"), wxT("Question"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
-
-    int ret = dial->ShowModal();
-    dial->Destroy();
-
-    if (ret == wxID_YES)
+    if (m_mainTab->GetPageCount() > 0)
     {
-          Destroy();
-    } else
+
+        wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Are you sure to quit?"), wxT("Question"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+
+        int ret = dial->ShowModal();
+        dial->Destroy();
+
+        if (ret == wxID_YES)
+        {
+              Destroy();
+        } else
+        {
+              evt.Veto();
+        }
+    }
+    else
     {
-          evt.Veto();
+        Destroy();
     }
 }

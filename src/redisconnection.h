@@ -89,12 +89,16 @@ public:
     }
 
     RedisValue GetValue(const wxString& key);
+
     int FindKV(const wxString& keyPatterns);
     wxArrayString& GetKeysResult() { return m_redisKeys; }
+
     const wxString& GetRemoteHost() { return m_remoteHost; }
     const wxString& GetTitle() { return m_title; }
     int GetRemotePort() { return m_remotePort; }
     wxString GetLastError() { return m_lastError; }
+
+    wxString GetServerInfo();
 };
 
 #endif // REDISCONNECTION_H

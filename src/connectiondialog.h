@@ -12,6 +12,8 @@ private:
     wxTextCtrl  *m_remoteHost;
     wxTextCtrl  *m_remotePort;
 
+    virtual void OnInitDialog(wxInitDialogEvent &event);
+
 public:
     ConnectionDialog(wxWindow *parent, const wxString& title);
 

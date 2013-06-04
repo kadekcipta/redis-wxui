@@ -12,6 +12,7 @@ enum {
     ID_MAIN_STATUS_BAR,
     ID_MAIN_TOOL_BAR,
     ID_MENU_CONNECT,
+    ID_MENU_ADD_KV,
     ID_MENU_QUERY,
     ID_MENU_SETTINGS,
     ID_MENU_MODIFY_VALUE,
@@ -41,6 +42,7 @@ private:
     virtual void OnQuit(wxCommandEvent& evt);
     virtual void OnClose(wxCloseEvent& evt);
     virtual void OnAddConnection(wxCommandEvent& evt);
+    virtual void OnAddKeyValuePair(wxCommandEvent& evt);
 
     void AddConnection();
 
