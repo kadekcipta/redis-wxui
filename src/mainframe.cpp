@@ -78,6 +78,8 @@ void MainFrame::InitializeMenubar()
     Connect(ID_MENU_DELETE, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrame::OnKeySelectedUpdateUI));
     Connect(ID_MENU_EDIT_KEY_VALUE, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrame::OnKeySelectedUpdateUI));
     Connect(ID_MENU_EXPIRE, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrame::OnKeySelectedUpdateUI));
+
+    Connect(wxEVT_IDLE, wxIdleEventHandler(MainFrame::OnIdle));
 }
 
 void MainFrame::OnKeySelectedUpdateUI(wxUpdateUIEvent &evt)
@@ -210,4 +212,20 @@ void MainFrame::OnClose(wxCloseEvent &evt)
     {
         Destroy();
     }
+}
+
+void MainFrame::OnIdle(wxIdleEvent &evt)
+{
+    if (GetActivePanel() != NULL)
+    {
+        SetStatusText(GetActivePanel()->GetServerInfo());
+        evt.RequestMore();
+    }
+    else
+    {
+        SetStatusText("");
+        evt.RequestMore();
+    }
+
+    evt.Skip();
 }

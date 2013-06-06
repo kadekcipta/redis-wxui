@@ -53,20 +53,10 @@ bool RedisConnection::SelectDb(uint db)
     if (!IsConnected())
         return false;
 
-    bool ret = true;
-
     redisReply *reply = (redisReply*)redisCommand(m_redisContext, "SELECT %d", db);
+    bool ret = reply != NULL && reply->type != REDIS_REPLY_ERROR;
+
     if (reply != NULL) {
-        switch (reply->type)
-        {
-        case REDIS_REPLY_ERROR:
-            ret = false;
-            break;
-
-        case REDIS_REPLY_STATUS:
-            break;
-        }
-
         freeReplyObject(reply);
     }
 
@@ -97,25 +87,36 @@ RedisValue RedisConnection::GetValue(const wxString& key)
     return RedisValue();
 }
 
+wxString RedisConnection::CheckReply(redisReply *reply) const
+{
+    wxString ret(wxEmptyString);
+
+    if (reply != NULL) {
+        switch (reply->type)
+        {
+        case REDIS_REPLY_ERROR:
+            ret = wxString(reply->str, reply->len);
+            break;
+
+        case REDIS_REPLY_STATUS:
+            ret = wxString(reply->str, reply->len);
+            break;
+
+        }
+    }
+
+    return wxEmptyString;
+}
+
 bool RedisConnection::DeleteKey(const wxString &key)
 {
     if (!IsConnected())
         return false;
 
-    bool ret = true;
-
     redisReply *reply = (redisReply*)redisCommand(m_redisContext, "DEL %s", key.GetData().AsChar());
+    bool ret = reply != NULL && reply->type != REDIS_REPLY_ERROR;
+
     if (reply != NULL) {
-        switch (reply->type)
-        {
-        case REDIS_REPLY_ERROR:
-            ret = false;
-            break;
-
-        case REDIS_REPLY_STATUS:
-            break;
-        }
-
         freeReplyObject(reply);
     }
 
@@ -127,7 +128,6 @@ bool RedisConnection::SetValue(const wxString &key, const RedisValue &value)
     if (!IsConnected())
         return false;
 
-    bool ret = false;
     redisReply *reply = NULL;
 
     if (value.GetValueType() == REDIS_INT_VALUE)
@@ -135,17 +135,9 @@ bool RedisConnection::SetValue(const wxString &key, const RedisValue &value)
     else if (value.GetValueType() == REDIS_STR_VALUE)
         reply = (redisReply*)redisCommand(m_redisContext, "SET %s %s", key.GetData().AsChar(), value.GetStrValue().GetData().AsChar());
 
+    bool ret = reply != NULL && reply->type != REDIS_REPLY_ERROR;
+
     if (reply != NULL) {
-        switch (reply->type)
-        {
-        case REDIS_REPLY_STATUS:
-            break;
-
-        case REDIS_REPLY_ERROR:
-            ret = false;
-            break;
-        }
-
         freeReplyObject(reply);
     }
 
@@ -157,20 +149,10 @@ bool RedisConnection::Expire(const wxString &key, int seconds)
     if (!IsConnected())
         return false;
 
-    bool ret = false;
     redisReply *reply = (redisReply*)redisCommand(m_redisContext, "EXPIRE %s %d", key.GetData().AsChar(), seconds);
+    bool ret = reply != NULL && reply->type != REDIS_REPLY_ERROR;
 
     if (reply != NULL) {
-        switch (reply->type)
-        {
-        case REDIS_REPLY_STATUS:
-            break;
-
-        case REDIS_REPLY_ERROR:
-            ret = false;
-            break;
-        }
-
         freeReplyObject(reply);
     }
 
@@ -199,35 +181,22 @@ int RedisConnection::FindKV(const wxString& keyPatterns)
     if (m_redisContext == NULL)
         return -1;
 
-
     wxString realPatterns = keyPatterns;
     realPatterns.Trim();
 
     if (keyPatterns == "")
-    {
         realPatterns = "*";
-    }
 
     int nRet = 0;
     redisReply *reply = (redisReply*)redisCommand(m_redisContext, "KEYS %s", realPatterns.GetData().AsChar());
-    if (reply != NULL)
+    if (reply != NULL && reply->type == REDIS_REPLY_ARRAY)
     {
-        switch (reply->type) {
-        case REDIS_REPLY_STRING:
-            break;
-
-        case REDIS_REPLY_ARRAY:
-            IterateArrayResponse(reply->element, reply->elements);
-            break;
-
-        default:
-            break;
-        }
-
+        IterateArrayResponse(reply->element, reply->elements);
         nRet = (int)reply->elements;
-
         freeReplyObject(reply);
     }
+
+    GetServerInfo();
 
     return nRet;
 }
@@ -235,6 +204,8 @@ int RedisConnection::FindKV(const wxString& keyPatterns)
 
 wxString RedisConnection::GetServerInfo()
 {
+    wxString tmp;
+
     redisReply *reply = (redisReply*)redisCommand(m_redisContext, "INFO");
     if (reply != NULL)
     {
@@ -249,10 +220,23 @@ wxString RedisConnection::GetServerInfo()
 
         for (int i = 0; i < tokens.Count(); i++)
         {
-            wxSafeShowMessage("Info", tokens[i]);
-        }
+            wxString token = tokens[i];
+            if (token.StartsWith("#"))
+                continue;
 
+            wxArrayString kv = wxStringTokenize(token, ":");
+
+            for (int n = 0; n < N_SERVER_ATTRIBUTES; n++)
+            {
+                if (kv[0] == SERVER_ATTRIBUTES[n])
+                {
+                    token.Replace("_", " ");
+                    token.MakeCapitalized();
+                    tmp.Append(token).Append(" ");
+                }
+            }
+        }
     }
 
-    return "";
+    return tmp;
 }

@@ -208,9 +208,18 @@ void QueryPanel::SelectDb()
 
 void QueryPanel::ExpireKey()
 {
-    wxNumberEntryDialog dlg(this, wxT(""), wxT(""), wxT("Set Key Expiration"), 10, 1, 2147483647);
+    wxNumberEntryDialog dlg(this, wxT(""), wxT("Please set the expiration time in seconds"), wxT("Set Key Expiration"), 10, 1, 2147483647);
     if (dlg.ShowModal() == wxID_OK && m_connection != NULL && m_connection->IsConnected())
     {
         m_connection->Expire(GetSelectedKey(), (int)dlg.GetValue());
     }
 }
+
+wxString QueryPanel::GetServerInfo() const
+{
+    if (m_connection != NULL && m_connection->IsConnected())
+        return m_connection->GetServerInfo();
+
+    return wxEmptyString;
+}
+

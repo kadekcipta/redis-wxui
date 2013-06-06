@@ -14,6 +14,16 @@ enum {
     REDIS_STR_VALUE
 };
 
+#define N_SERVER_ATTRIBUTES 5
+
+const wxString SERVER_ATTRIBUTES[N_SERVER_ATTRIBUTES] = {
+    "os",
+    "arch_bits",
+    "uptime_in_seconds",
+    "connected_clients",
+    "used_memory"
+};
+
 class RedisValue
 {
 private:
@@ -71,6 +81,7 @@ private:
 
 private:
     void IterateArrayResponse(redisReply **response, size_t length);
+    wxString CheckReply(redisReply *reply) const;
 
 public:
     RedisConnection(const wxString& remoteHost, int remotePort=6379, const wxString& title="");

@@ -57,6 +57,8 @@ public:
     void DeleteKey();
     void SelectDb();
     void ExpireKey();
+
+    wxString GetServerInfo() const;
 };
 
 #endif // QUERYPANEL_H

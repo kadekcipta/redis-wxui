@@ -49,6 +49,8 @@ private:
 
     QueryPanel * GetActivePanel();
 
+    virtual void OnIdle(wxIdleEvent &evt);
+
     virtual void OnQuit(wxCommandEvent& evt);
     virtual void OnClose(wxCloseEvent& evt);
     virtual void OnAddConnection(wxCommandEvent& evt);
