@@ -48,6 +48,31 @@ void RedisConnection::Disconnect()
     }
 }
 
+bool RedisConnection::SelectDb(uint db)
+{
+    if (!IsConnected())
+        return false;
+
+    bool ret = true;
+
+    redisReply *reply = (redisReply*)redisCommand(m_redisContext, "SELECT %d", db);
+    if (reply != NULL) {
+        switch (reply->type)
+        {
+        case REDIS_REPLY_ERROR:
+            ret = false;
+            break;
+
+        case REDIS_REPLY_STATUS:
+            break;
+        }
+
+        freeReplyObject(reply);
+    }
+
+    return ret;
+}
+
 RedisValue RedisConnection::GetValue(const wxString& key)
 {
     if (!IsConnected())
@@ -70,6 +95,86 @@ RedisValue RedisConnection::GetValue(const wxString& key)
     }
 
     return RedisValue();
+}
+
+bool RedisConnection::DeleteKey(const wxString &key)
+{
+    if (!IsConnected())
+        return false;
+
+    bool ret = true;
+
+    redisReply *reply = (redisReply*)redisCommand(m_redisContext, "DEL %s", key.GetData().AsChar());
+    if (reply != NULL) {
+        switch (reply->type)
+        {
+        case REDIS_REPLY_ERROR:
+            ret = false;
+            break;
+
+        case REDIS_REPLY_STATUS:
+            break;
+        }
+
+        freeReplyObject(reply);
+    }
+
+    return ret;
+}
+
+bool RedisConnection::SetValue(const wxString &key, const RedisValue &value)
+{
+    if (!IsConnected())
+        return false;
+
+    bool ret = false;
+    redisReply *reply = NULL;
+
+    if (value.GetValueType() == REDIS_INT_VALUE)
+        reply = (redisReply*)redisCommand(m_redisContext, "SET %s %d", key.GetData().AsChar(), value.GetIntValue());
+    else if (value.GetValueType() == REDIS_STR_VALUE)
+        reply = (redisReply*)redisCommand(m_redisContext, "SET %s %s", key.GetData().AsChar(), value.GetStrValue().GetData().AsChar());
+
+    if (reply != NULL) {
+        switch (reply->type)
+        {
+        case REDIS_REPLY_STATUS:
+            break;
+
+        case REDIS_REPLY_ERROR:
+            ret = false;
+            break;
+        }
+
+        freeReplyObject(reply);
+    }
+
+    return ret;
+}
+
+bool RedisConnection::Expire(const wxString &key, int seconds)
+{
+    if (!IsConnected())
+        return false;
+
+    bool ret = false;
+    redisReply *reply = (redisReply*)redisCommand(m_redisContext, "EXPIRE %s %d", key.GetData().AsChar(), seconds);
+
+    if (reply != NULL) {
+        switch (reply->type)
+        {
+        case REDIS_REPLY_STATUS:
+            break;
+
+        case REDIS_REPLY_ERROR:
+            ret = false;
+            break;
+        }
+
+        freeReplyObject(reply);
+    }
+
+    return ret;
 }
 
 void RedisConnection::IterateArrayResponse(redisReply **response, size_t length)

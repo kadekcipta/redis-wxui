@@ -6,19 +6,34 @@
     #include <wx/wx.h>
 #endif
 
+enum {
+    ID_HOSTNAME,
+    ID_PORT
+};
+
 class ConnectionDialog : public wxDialog
 {
 private:
-    wxTextCtrl  *m_remoteHost;
-    wxTextCtrl  *m_remotePort;
+    wxString  m_remoteHost;
+    wxString  m_remotePort;
 
     virtual void OnInitDialog(wxInitDialogEvent &event);
+    void CreateControls();
 
 public:
     ConnectionDialog(wxWindow *parent, const wxString& title);
 
-    wxString GetRemoteHostName() const;
-    int GetRemotePort() const;
+    wxString GetRemoteHostName() { return m_remoteHost; }
+    int GetRemotePort()
+    {
+        unsigned long v = 0;
+        if (m_remotePort.ToULong(&v))
+        {
+            return v;
+        }
+
+        return 6379;
+    }
 };
 
 #endif // CONNECTIONDIALOG_H

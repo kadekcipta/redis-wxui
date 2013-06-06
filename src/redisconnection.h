@@ -49,13 +49,13 @@ public:
 
 
     void SetStrValue(const wxString& value) { m_strValue = value; }
-    const wxString& GetStrValue() { return m_strValue; }
+    const wxString& GetStrValue() const { return m_strValue; }
 
     void SetIntValue(int value) { m_intValue = value; }
-    int GetIntValue() { return m_intValue; }
+    int GetIntValue() const { return m_intValue; }
 
     void SetValueType(int valueType) { m_valueType = valueType; }
-    int GetValueType() { return m_valueType; }
+    int GetValueType() const { return m_valueType; }
 };
 
 class RedisConnection
@@ -89,6 +89,10 @@ public:
     }
 
     RedisValue GetValue(const wxString& key);
+    bool SetValue(const wxString& key, const RedisValue& value);
+    bool DeleteKey(const wxString& key);
+    bool SelectDb(uint db);
+    bool Expire(const wxString& key, int seconds);
 
     int FindKV(const wxString& keyPatterns);
     wxArrayString& GetKeysResult() { return m_redisKeys; }

@@ -1,8 +1,7 @@
 #include "mainframe.h"
-#include "serverpanel.h"
 #include "querypanel.h"
 #include "connectiondialog.h"
-#include "kveditor.h"
+#include "kveditordialog.h"
 #include "res/network.xpm"
 
 MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(950, 500))
@@ -21,16 +20,21 @@ void MainFrame::InitializeMenubar()
 {
     // creates menubar
     m_fileMenu = new wxMenu();
-    m_fileMenu->Append(ID_MENU_CONNECT, wxT("Connect..."));
+    m_fileMenu->Append(ID_MENU_CONNECT, wxT("Add Connection..."));
     m_fileMenu->AppendSeparator();
-    m_fileMenu->Append(ID_MENU_ADD_KV, wxT("Add Key-Value Pair..."));
+    m_fileMenu->Append(ID_MENU_ADD_KV, wxT("New Key Value Pair..."));
+    m_fileMenu->Append(ID_MENU_SELECT_DB, wxT("Select Database..."));
+    m_fileMenu->Append(ID_MENU_DISCONNECT, wxT("Disconnect"));
+    m_fileMenu->AppendSeparator();
     m_fileMenu->Append(ID_MENU_SETTINGS, wxT("Settings..."))->Enable(false);
     m_fileMenu->AppendSeparator();
     m_fileMenu->Append(wxID_EXIT, wxT("E&xit"));
 
     m_editMenu = new wxMenu();
-    m_editMenu->Append(ID_MENU_MODIFY_VALUE, wxT("Modify Value..."))->Enable(false);
-    m_editMenu->Append(ID_MENU_DELETE, wxT("Delete Key"))->Enable(false);
+    m_editMenu->Append(ID_MENU_EDIT_KEY_VALUE, wxT("Modify Value..."));
+    m_editMenu->Append(ID_MENU_DELETE, wxT("Delete Key"));
+    m_editMenu->AppendSeparator();
+    m_editMenu->Append(ID_MENU_EXPIRE, wxT("Set Expiration"));
 
     m_helpMenu = new wxMenu();
     m_helpMenu->Append(ID_MENU_ABOUT, wxT("About..."));
@@ -50,21 +54,98 @@ void MainFrame::InitializeMenubar()
     toolbar->SetWindowStyle(style);
 
     wxBitmap bm(network_xpm);
-    toolbar->AddTool(ID_MENU_CONNECT, wxT("Connect"), bm);
+    toolbar->AddTool(ID_MENU_CONNECT, wxT("Add Connection"), bm);
     toolbar->AddSeparator();
     SetToolBar(toolbar);
 
     // wire events
+
     Connect(wxID_EXIT, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::OnQuit));
     Connect(ID_MENU_CONNECT, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::OnAddConnection));
+    Connect(ID_MENU_DISCONNECT, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::OnCloseConnection));
     Connect(ID_MENU_ADD_KV, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::OnAddKeyValuePair));
+    Connect(ID_MENU_EDIT_KEY_VALUE, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::OnEditKeyValue));
+    Connect(ID_MENU_DELETE, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::OnDeleteKey));
+    Connect(ID_MENU_EXPIRE, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::OnExpireKey));
+    Connect(ID_MENU_SELECT_DB, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::OnSelectDb));
+
     Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(MainFrame::OnClose));
+
+    Connect(ID_MENU_ADD_KV, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrame::OnRedisConnectedUpdateUI));
+    Connect(ID_MENU_SELECT_DB, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrame::OnRedisConnectedUpdateUI));
+    Connect(ID_MENU_DISCONNECT, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrame::OnRedisConnectedUpdateUI));
+
+    Connect(ID_MENU_DELETE, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrame::OnKeySelectedUpdateUI));
+    Connect(ID_MENU_EDIT_KEY_VALUE, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrame::OnKeySelectedUpdateUI));
+    Connect(ID_MENU_EXPIRE, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrame::OnKeySelectedUpdateUI));
+}
+
+void MainFrame::OnKeySelectedUpdateUI(wxUpdateUIEvent &evt)
+{
+    QueryPanel *panel = GetActivePanel();
+    if (panel != NULL)
+    {
+        evt.Enable(panel->GetSelectedKey() != "");
+    }
+    else
+    {
+        evt.Enable(false);
+    }
+}
+
+void MainFrame::OnRedisConnectedUpdateUI(wxUpdateUIEvent &evt)
+{
+    evt.Enable(GetActivePanel() != NULL);
+}
+
+QueryPanel * MainFrame::GetActivePanel()
+{
+    if (m_mainTab->GetPageCount() > 0)
+    {
+        return (QueryPanel*)m_mainTab->GetCurrentPage();
+    }
+
+    return NULL;
+}
+
+void MainFrame::OnEditKeyValue(wxCommandEvent &evt)
+{
+    if (GetActivePanel() != NULL)
+    {
+        GetActivePanel()->EditKeyValue();
+    }
+}
+
+void MainFrame::OnDeleteKey(wxCommandEvent &evt)
+{
+    if (GetActivePanel() != NULL)
+    {
+        GetActivePanel()->DeleteKey();
+    }
+}
+
+void MainFrame::OnExpireKey(wxCommandEvent &evt)
+{
+    if (GetActivePanel() != NULL)
+    {
+        GetActivePanel()->ExpireKey();
+    }
+}
+
+void MainFrame::OnSelectDb(wxCommandEvent &evt)
+{
+    if (GetActivePanel() != NULL)
+    {
+        GetActivePanel()->SelectDb();
+    }
 }
 
 void MainFrame::OnAddKeyValuePair(wxCommandEvent &evt)
 {
-    KVEditor dlg(this, wxT("Add Key-Value Pair"));
-    dlg.ShowModal();
+    if (GetActivePanel() != NULL)
+    {
+        GetActivePanel()->AddKeyValue();
+    }
 }
 
 void MainFrame::AddConnection()
@@ -92,6 +173,14 @@ void MainFrame::AddConnection()
 void MainFrame::OnAddConnection(wxCommandEvent &evt)
 {
     AddConnection();
+}
+
+void MainFrame::OnCloseConnection(wxCommandEvent &evt)
+{
+    if (GetActivePanel() != NULL)
+    {
+        GetActivePanel()->CloseConnection();
+    }
 }
 
 void MainFrame::OnQuit(wxCommandEvent& evt)

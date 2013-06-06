@@ -28,13 +28,16 @@ private:
     wxTextCtrl  *m_valueText;
     wxListBox   *m_resultList;
     wxButton    *m_searchTrigger;
-    wxButton    *m_closeTrigger;
     wxButton    *m_updateTrigger;
+    uint         m_currentDb;
+
+    void RefreshCurrentKeyValue();
 
     virtual void OnFind(wxCommandEvent& evt);
     virtual void OnEnterKey(wxKeyEvent& evt);
     virtual void OnDisconnect(wxCommandEvent& evt);
     virtual void OnKeySelected(wxCommandEvent& evt);
+    virtual void OnKeyDoubleClicked(wxCommandEvent& evt);
 
     void IterateArrayResponse(redisReply **response, size_t length);
 
@@ -46,6 +49,14 @@ public:
     virtual ~QueryPanel();
 
     wxString GetSearchText() const;
+    wxString GetSelectedKey() const;
+
+    void CloseConnection();
+    void AddKeyValue();
+    void EditKeyValue();
+    void DeleteKey();
+    void SelectDb();
+    void ExpireKey();
 };
 
 #endif // QUERYPANEL_H
