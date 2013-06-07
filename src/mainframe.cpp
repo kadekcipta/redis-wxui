@@ -216,16 +216,16 @@ void MainFrame::OnClose(wxCloseEvent &evt)
 
 void MainFrame::OnIdle(wxIdleEvent &evt)
 {
-    if (GetActivePanel() != NULL)
-    {
-        SetStatusText(GetActivePanel()->GetServerInfo());
-        evt.RequestMore();
-    }
-    else
-    {
-        SetStatusText("");
-        evt.RequestMore();
-    }
+//    if (GetActivePanel() != NULL)
+//    {
+//        SetStatusText(GetActivePanel()->GetServerInfo());
+//        evt.RequestMore();
+//    }
+//    else
+//    {
+//        SetStatusText("");
+//        evt.RequestMore();
+//    }
 
     evt.Skip();
 }
