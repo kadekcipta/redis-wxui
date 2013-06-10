@@ -1,4 +1,13 @@
-#include "querypanel.h"
+#include <wx/wxprec.h>
+
+#ifdef __BORLANDC__
+#pragma hdrstop
+#endif
+
+#ifndef WX_PRECOMP
+    #include <wx/wx.h>
+#endif
+
 #include <wx/wx.h>
 #include <wx/stc/stc.h>
 #include <wx/notebook.h>
@@ -9,50 +18,68 @@
 #include <wx/numdlg.h>
 #include <limits.h>
 
+#include "querypanel.h"
 #include "kveditordialog.h"
 #include "selectdbdialog.h"
 
 QueryPanel::QueryPanel(wxWindow *parent, RedisConnection *connection):
     wxPanel(parent), m_connection(connection), m_currentDb(0)
 {
-    wxSplitterWindow *splitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_BORDER);
-    wxPanel *leftPanel = new wxPanel(splitter);
-    wxPanel *rightPanel = new wxPanel(splitter);
+    wxNotebook *expTabs = new wxNotebook(this, ID_TAB_EXPLORE);
 
-    m_searchText = new wxTextCtrl(leftPanel, ID_TEXT_FIND, "", wxDefaultPosition, wxSize(-1, 28), wxTE_PROCESS_ENTER, wxDefaultValidator);
-    m_valueText = new wxTextCtrl(rightPanel, ID_TEXT_FIND, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
-    m_valueText->SetEditable(false);
-    m_valueText->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_APPWORKSPACE));
+    // dashboard
+    wxPanel *dashboardPanel = new wxPanel(expTabs);
+    expTabs->AddPage(dashboardPanel, wxT("Dashboard"));
 
-    m_searchTrigger = new wxButton(leftPanel, ID_COMMAND_FIND, wxT("Find Keys"), wxPoint(-1,-1), wxSize(-1, 28));
-    m_resultList = new wxListBox(leftPanel, ID_LIST_RESULT, wxDefaultPosition, wxDefaultSize);
+    // keys searching
+    wxPanel *keysSearchingPanel = new wxPanel(expTabs);
+    wxTextCtrl *txtKeysSearch = new wxTextCtrl(keysSearchingPanel, ID_TEXT_KEY, "", wxDefaultPosition, wxSize(-1, 28), wxTE_PROCESS_ENTER, wxDefaultValidator);
+    wxButton *btnKeySearch = new wxButton(keysSearchingPanel, ID_COMMAND_FIND_KEYS, wxT("Find"), wxPoint(-1,-1), wxSize(-1, 28));
+    wxListBox *lboxKeys = new wxListBox(keysSearchingPanel, ID_LBOX_KEYS, wxDefaultPosition, wxDefaultSize);
 
-    // searching and disconnect controls
-    wxBoxSizer *hboxSearch = new wxBoxSizer(wxHORIZONTAL);
-    hboxSearch->Add(m_searchText, 1, wxEXPAND);
-    hboxSearch->Add(m_searchTrigger, 0);
+    wxBoxSizer *hboxKeysSearch = new wxBoxSizer(wxHORIZONTAL);
+    hboxKeysSearch->Add(txtKeysSearch, 1, wxEXPAND);
+    hboxKeysSearch->Add(btnKeySearch, 0);
 
-    wxBoxSizer *vboxLeft = new wxBoxSizer(wxVERTICAL);
-    vboxLeft->Add(hboxSearch, 0, wxALIGN_LEFT | wxEXPAND);
-    vboxLeft->Add(m_resultList, 1, wxEXPAND | wxTOP, 3);
+    wxBoxSizer *vboxKeysSearch = new wxBoxSizer(wxVERTICAL);
+    vboxKeysSearch->Add(hboxKeysSearch, 0, wxALIGN_LEFT | wxEXPAND | wxALL, 3);
+    vboxKeysSearch->Add(lboxKeys, 1, wxEXPAND | wxALL & ~wxTOP, 3);
 
-    wxBoxSizer *vboxRight = new wxBoxSizer(wxVERTICAL);
-    vboxRight->Add(m_valueText, 1, wxEXPAND);
+    keysSearchingPanel->SetSizer(vboxKeysSearch);
+    expTabs->AddPage(keysSearchingPanel, wxT("Find Keys"));
+
+    // raw commands
+    wxPanel *rawCommandPanel = new wxPanel(expTabs);
+    wxTextCtrl *txtCommand = new wxTextCtrl(rawCommandPanel, ID_TEXT_COMMAND, wxEmptyString, wxDefaultPosition, wxSize(-1, 28), wxTE_PROCESS_ENTER, wxDefaultValidator);
+    wxButton *btnCommand = new wxButton(rawCommandPanel, ID_COMMAND_RAW, wxT("Execute"), wxPoint(-1,-1), wxSize(-1, 28));
+    wxTextCtrl *txtCommandResult = new wxTextCtrl(rawCommandPanel, ID_TEXT_COMMAND_RESULT, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
+    txtCommandResult->SetBackgroundColour(*wxBLACK);
+    txtCommandResult->SetForegroundColour(*wxGREEN);
+    txtCommandResult->SetFont(wxSystemSettings::GetFont(wxSYS_OEM_FIXED_FONT));
+    txtCommandResult->SetEditable(false);
+
+    wxBoxSizer *hboxCommand = new wxBoxSizer(wxHORIZONTAL);
+    hboxCommand->Add(txtCommand, 1, wxEXPAND);
+    hboxCommand->Add(btnCommand, 0);
+
+    wxBoxSizer *vboxCommand = new wxBoxSizer(wxVERTICAL);
+    vboxCommand->Add(hboxCommand, 0, wxALIGN_LEFT | wxEXPAND | wxALL, 3);
+    vboxCommand->Add(txtCommandResult, 1, wxEXPAND | wxALL & ~wxTOP, 3);
+
+    rawCommandPanel->SetSizer(vboxCommand);
+    expTabs->AddPage(rawCommandPanel, wxT("Raw Commands"));
 
     wxBoxSizer *hboxMain = new wxBoxSizer(wxHORIZONTAL);
-
-    leftPanel->SetSizer(vboxLeft);
-    rightPanel->SetSizer(vboxRight);
-
-    splitter->SplitVertically(leftPanel, rightPanel, parent->GetSize().GetWidth()/2);
-    hboxMain->Add(splitter, 1, wxEXPAND | wxALL, 3);
+    hboxMain->Add(expTabs, 1, wxEXPAND | wxALL, 3);
 
     SetSizer(hboxMain);
 
-    Connect(ID_COMMAND_FIND, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(QueryPanel::OnFind));
-    Connect(ID_TEXT_FIND, wxEVT_COMMAND_TEXT_ENTER, wxKeyEventHandler(QueryPanel::OnEnterKey));
-    Connect(ID_LIST_RESULT, wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler(QueryPanel::OnKeySelected));
-    Connect(ID_LIST_RESULT, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, wxCommandEventHandler(QueryPanel::OnKeyDoubleClicked));
+    Connect(ID_COMMAND_FIND_KEYS, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(QueryPanel::OnFind));
+    Connect(ID_TEXT_KEY, wxEVT_COMMAND_TEXT_ENTER, wxKeyEventHandler(QueryPanel::OnEnterKey));
+    Connect(ID_LBOX_KEYS, wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler(QueryPanel::OnKeySelected));
+    Connect(ID_LBOX_KEYS, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, wxCommandEventHandler(QueryPanel::OnKeyDoubleClicked));
+    Connect(ID_COMMAND_RAW, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(QueryPanel::OnRawCommand));
+    Connect(ID_TEXT_COMMAND, wxEVT_COMMAND_TEXT_ENTER, wxKeyEventHandler(QueryPanel::OnEnterKey));
 }
 
 QueryPanel::~QueryPanel()
@@ -66,7 +93,12 @@ QueryPanel::~QueryPanel()
 
 wxString QueryPanel::GetSearchText() const
 {
-    return m_searchText->GetValue();
+    return ((wxTextCtrl*)FindWindow(ID_TEXT_KEY))->GetValue();
+}
+
+wxString QueryPanel::GetCommandText() const
+{
+    return ((wxTextCtrl*)FindWindow(ID_TEXT_COMMAND))->GetValue();
 }
 
 void QueryPanel::OnKeyDoubleClicked(wxCommandEvent &evt)
@@ -74,37 +106,29 @@ void QueryPanel::OnKeyDoubleClicked(wxCommandEvent &evt)
     EditKeyValue();
 }
 
-void QueryPanel::RefreshCurrentKeyValue()
+wxListBox *QueryPanel::GetKeyListBox() const
 {
-    int selectedIndex = m_resultList->GetSelection();
-    if (selectedIndex != -1)
+    wxWindow *ctrl = FindWindow(ID_LBOX_KEYS);
+    if (ctrl != NULL)
     {
-        wxString key = m_resultList->GetString((unsigned)selectedIndex);
-        RedisValue value = m_connection->GetValue(key);
-        if (value.GetValueType() != REDIS_NONE_VALUE)
-        {
-            if (value.GetValueType() == REDIS_STR_VALUE)
-            {
-                m_valueText->Clear();
-                m_valueText->SetValue(value.GetStrValue());
-            }
-        }
+        return (wxListBox*)ctrl;
     }
+
+    return NULL;
 }
 
 void QueryPanel::OnKeySelected(wxCommandEvent &evt)
 {
     if (m_connection != NULL && m_connection->IsConnected())
     {
-        RefreshCurrentKeyValue();
     }
 }
 
 wxString QueryPanel::GetSelectedKey() const
 {
-    if (m_resultList != NULL)
+    if (GetKeyListBox() != NULL)
     {
-        return m_resultList->GetStringSelection();
+        return GetKeyListBox()->GetStringSelection();
     }
 
     return "";
@@ -115,9 +139,21 @@ void QueryPanel::OnFind(wxCommandEvent& evt)
     DoFindKeys(GetSearchText());
 }
 
+void QueryPanel::OnRawCommand(wxCommandEvent &evt)
+{
+    DoExecuteCommand(GetCommandText());
+}
+
 void QueryPanel::OnEnterKey(wxKeyEvent& evt)
 {
-    DoFindKeys(GetSearchText());
+    if (evt.GetEventObject() == FindWindow(ID_TEXT_KEY))
+    {
+        DoFindKeys(GetSearchText());
+    }
+    else if (evt.GetEventObject() == FindWindow(ID_TEXT_COMMAND))
+    {
+        DoExecuteCommand(GetCommandText());
+    }
 }
 
 void QueryPanel::OnDisconnect(wxCommandEvent& evt)
@@ -125,9 +161,25 @@ void QueryPanel::OnDisconnect(wxCommandEvent& evt)
     CloseConnection();
 }
 
+void QueryPanel::DoExecuteCommand(const wxString &command)
+{
+    if (!command.IsEmpty() && m_connection != NULL && m_connection->IsConnected())
+    {
+        RedisValue ret = m_connection->ExecuteCommand(command);
+        if (ret.GetValueType() != REDIS_NONE_VALUE)
+        {
+            wxTextCtrl *result = (wxTextCtrl*)FindWindow(ID_TEXT_COMMAND_RESULT);
+            if (ret.GetValueType() == REDIS_INT_VALUE)
+                result->SetValue(wxString::Format("%d", ret.GetIntValue()));
+            else
+                result->SetValue(ret.GetStrValue());
+        }
+    }
+}
+
 void QueryPanel::DoFindKeys(const wxString& keyPatterns)
 {
-    m_resultList->Clear();
+    GetKeyListBox()->Clear();
     if (m_connection)
     {
         m_connection->FindKV(keyPatterns);
@@ -135,7 +187,7 @@ void QueryPanel::DoFindKeys(const wxString& keyPatterns)
         wxArrayString &result = m_connection->GetKeysResult();
         for (int i = 0; i < result.Count(); i++)
         {
-            m_resultList->Append(result[i]);
+            GetKeyListBox()->Append(result[i]);
         }
     }
 }
@@ -161,7 +213,6 @@ void QueryPanel::EditKeyValue()
         if (dlg.ShowModal() == wxID_OK)
         {
             m_connection->SetValue(dlg.GetKey(), dlg.GetValue());
-            RefreshCurrentKeyValue();
         }
     }
 }
@@ -182,11 +233,10 @@ void QueryPanel::DeleteKey()
     {
         if (m_connection->DeleteKey(GetSelectedKey()))
         {
-            int selectedIndex = m_resultList->GetSelection();
+            int selectedIndex = GetKeyListBox()->GetSelection();
             if (selectedIndex != -1)
             {
-                m_resultList->Delete((unsigned int)selectedIndex);
-                m_valueText->Clear();
+                GetKeyListBox()->Delete((unsigned int)selectedIndex);
             }
         }
     }

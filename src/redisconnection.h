@@ -1,11 +1,6 @@
 #ifndef REDISCONNECTION_H
 #define REDISCONNECTION_H
 
-#include <wx/wxprec.h>
-#ifndef WX_PRECOMP
-    #include <wx/wx.h>
-#endif
-
 #include "hiredis/hiredis.h"
 
 enum {
@@ -81,6 +76,7 @@ private:
 
 private:
     void IterateArrayResponse(redisReply **response, size_t length);
+    wxString ArrayReplyToString(redisReply **response, size_t length, int indent=-1);
     wxString CheckReply(redisReply *reply) const;
 
 public:
@@ -98,6 +94,8 @@ public:
 
         return false;
     }
+
+    RedisValue ExecuteCommand(const wxString& key);
 
     RedisValue GetValue(const wxString& key);
     bool SetValue(const wxString& key, const RedisValue& value);

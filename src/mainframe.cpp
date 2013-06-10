@@ -1,10 +1,20 @@
+#include <wx/wxprec.h>
+
+#ifdef __BORLANDC__
+#pragma hdrstop
+#endif
+
+#ifndef WX_PRECOMP
+    #include <wx/wx.h>
+#endif
+
 #include "mainframe.h"
 #include "querypanel.h"
 #include "connectiondialog.h"
 #include "kveditordialog.h"
 #include "res/network.xpm"
 
-MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(950, 500))
+MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(750, 700))
 {
     InitializeMenubar();
     InitializeControls();
@@ -13,7 +23,7 @@ MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDe
 
 void MainFrame::InitializeControls()
 {
-    m_mainTab = new wxNotebook(this, ID_MAIN_TAB);
+    m_mainTab = new wxNotebook(this, ID_MAIN_TAB, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM);
 }
 
 void MainFrame::InitializeMenubar()

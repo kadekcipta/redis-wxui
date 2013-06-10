@@ -1,3 +1,13 @@
+#include <wx/wxprec.h>
+
+#ifdef __BORLANDC__
+#pragma hdrstop
+#endif
+
+#ifndef WX_PRECOMP
+    #include <wx/wx.h>
+#endif
+
 #include "redisconnection.h"
 #include <sys/time.h>
 #include <wx/tokenzr.h>
@@ -108,6 +118,49 @@ wxString RedisConnection::CheckReply(redisReply *reply) const
     return wxEmptyString;
 }
 
+RedisValue RedisConnection::ExecuteCommand(const wxString& command)
+{
+    if (!IsConnected())
+        return RedisValue();
+
+    wxString _command(command);
+    if (_command.Trim(false).Upper().StartsWith("MONITOR"))
+        return RedisValue();
+
+    redisReply *reply = (redisReply*)redisCommand(m_redisContext, command.GetData().AsChar());
+    if (reply != NULL) {
+
+        RedisValue ret;
+
+        switch (reply->type)
+        {
+        case REDIS_REPLY_STATUS:
+        case REDIS_REPLY_STRING:
+        case REDIS_REPLY_ERROR:
+            ret = RedisValue(wxString(reply->str));
+            break;
+
+        case REDIS_REPLY_ARRAY:
+            ret = RedisValue(ArrayReplyToString(reply->element, reply->elements));
+            break;
+
+        case REDIS_REPLY_NIL:
+            ret = RedisValue("(nil)");
+            break;
+
+        case REDIS_REPLY_INTEGER:
+            ret = RedisValue(reply->integer);
+            break;
+        }
+
+        freeReplyObject(reply);
+
+        return ret;
+    }
+
+    return RedisValue();
+}
+
 bool RedisConnection::DeleteKey(const wxString &key)
 {
     if (!IsConnected())
@@ -157,6 +210,46 @@ bool RedisConnection::Expire(const wxString &key, int seconds)
     }
 
     return ret;
+}
+
+wxString RedisConnection::ArrayReplyToString(redisReply **response, size_t length, int indent)
+{
+    wxString tmp;
+    wxString indentStr;
+    if (indent > 0)
+    {
+        for (int i = 0; i < indent; i++)
+            indentStr.Append("\t");
+    }
+
+    redisReply **rep = response;
+    for (int i = 0; i < length; i++)
+    {
+        redisReply *r = *rep;
+
+        switch ((*rep)->type) {
+        case REDIS_REPLY_STATUS:
+        case REDIS_REPLY_STRING:
+            tmp.Append(indentStr);
+            tmp.Append(wxString(r->str));
+            tmp.Append("\n");
+            break;
+
+        case REDIS_REPLY_INTEGER:
+            tmp.Append(indentStr);
+            tmp.Append(wxString::Format("(integer) %d", (int)r->integer));
+            tmp.Append("\n");
+            break;
+
+        case REDIS_REPLY_ARRAY:
+            tmp.Append(ArrayReplyToString((*rep)->element, (*rep)->elements, indent + 1));
+            break;
+        }
+
+        ++rep;
+    }
+
+    return tmp;
 }
 
 void RedisConnection::IterateArrayResponse(redisReply **response, size_t length)

@@ -1,10 +1,8 @@
 #ifndef KVEDITORDIALOG_H
 #define KVEDITORDIALOG_H
 
-#include <wx/wxprec.h>
-#ifndef WX_PRECOMP
-    #include <wx/wx.h>
-#endif
+#include <wx/window.h>
+#include <wx/dialog.h>
 
 #include "redisconnection.h"
 

@@ -1,3 +1,13 @@
+#include <wx/wxprec.h>
+
+#ifdef __BORLANDC__
+#pragma hdrstop
+#endif
+
+#ifndef WX_PRECOMP
+    #include <wx/wx.h>
+#endif
+
 #include "kveditordialog.h"
 
 KeyValueEditorDialog::KeyValueEditorDialog(wxWindow *parent, const wxString& title, const wxString& key, const RedisValue& value):
@@ -27,7 +37,7 @@ void KeyValueEditorDialog::CreateControls()
 
     wxBoxSizer *hboxValue = new wxBoxSizer(wxHORIZONTAL);
     hboxValue->Add(new wxStaticText(this, wxID_ANY, wxT("Value")), 1, wxALIGN_RIGHT | wxALIGN_TOP | wxEXPAND | wxRIGHT, 8);
-    wxTextCtrl *txtValue = new wxTextCtrl(this, ID_VALUE, "", wxDefaultPosition, wxSize(-1, 150), wxTE_MULTILINE);
+    wxTextCtrl *txtValue = new wxTextCtrl(this, ID_VALUE, "", wxDefaultPosition, wxSize(-1, 250), wxTE_MULTILINE);
     hboxValue->Add(txtValue, 4, wxALIGN_LEFT );
     vbox->Add(hboxValue, 0, wxEXPAND | wxALL, 8);
 

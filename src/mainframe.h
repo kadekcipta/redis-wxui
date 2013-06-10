@@ -1,12 +1,7 @@
 #ifndef SIMPLE_H
 #define SIMPLE_H
 
-#include <wx/wxprec.h>
-#ifndef WX_PRECOMP
-    #include <wx/wx.h>
-    #include <wx/notebook.h>
-#endif
-
+#include <wx/notebook.h>
 #include "querypanel.h"
 
 enum {
@@ -28,9 +23,6 @@ enum {
 class MainFrame : public wxFrame
 {
 private:
-    wxPanel *m_parent;
-    wxPanel *m_serverPanel;
-    wxPanel *m_queryPanel;
     wxNotebook *m_mainTab;
     wxStatusBar *m_statusBar;
 
@@ -49,17 +41,17 @@ private:
 
     QueryPanel * GetActivePanel();
 
-    virtual void OnIdle(wxIdleEvent &evt);
+    void OnIdle(wxIdleEvent &evt);
 
-    virtual void OnQuit(wxCommandEvent& evt);
-    virtual void OnClose(wxCloseEvent& evt);
-    virtual void OnAddConnection(wxCommandEvent& evt);
-    virtual void OnCloseConnection(wxCommandEvent& evt);
-    virtual void OnAddKeyValuePair(wxCommandEvent& evt);
-    virtual void OnSelectDb(wxCommandEvent& evt);
-    virtual void OnEditKeyValue(wxCommandEvent& evt);
-    virtual void OnDeleteKey(wxCommandEvent& evt);
-    virtual void OnExpireKey(wxCommandEvent& evt);
+    void OnQuit(wxCommandEvent& evt);
+    void OnClose(wxCloseEvent& evt);
+    void OnAddConnection(wxCommandEvent& evt);
+    void OnCloseConnection(wxCommandEvent& evt);
+    void OnAddKeyValuePair(wxCommandEvent& evt);
+    void OnSelectDb(wxCommandEvent& evt);
+    void OnEditKeyValue(wxCommandEvent& evt);
+    void OnDeleteKey(wxCommandEvent& evt);
+    void OnExpireKey(wxCommandEvent& evt);
 
     void AddConnection();
 
