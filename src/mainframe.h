@@ -1,8 +1,18 @@
 #ifndef SIMPLE_H
 #define SIMPLE_H
 
-#include <wx/notebook.h>
 #include "querypanel.h"
+
+class wxString;
+class wxNotebook;
+class wxUpdateUIEvent;
+class wxCommandEvent;
+class wxCloseEvent;
+class wxIdleEvent;
+class wxFrame;
+class wxMenu;
+class wxStatusBar;
+class wxMenuBar;
 
 enum {
     ID_MAIN_TAB = 100,

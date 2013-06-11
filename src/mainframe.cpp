@@ -8,6 +8,7 @@
     #include <wx/wx.h>
 #endif
 
+#include <wx/notebook.h>
 #include "mainframe.h"
 #include "querypanel.h"
 #include "connectiondialog.h"

@@ -1,10 +1,13 @@
 #ifndef KVEDITORDIALOG_H
 #define KVEDITORDIALOG_H
 
-#include <wx/window.h>
-#include <wx/dialog.h>
-
 #include "redisconnection.h"
+
+class wxDialog;
+class wxWindow;
+class wxString;
+class wxCommandEvent;
+class wxInitDialogEvent;
 
 enum {
     ID_KEY_NAME,
@@ -17,16 +20,16 @@ class KeyValueEditorDialog : public wxDialog
 private:
     wxString    m_key;
     wxString    m_value;
-    RedisValue  m_redisValue;
+    RedisSimpleValue  m_redisValue;
 
     void OnInitDialog(wxInitDialogEvent &event);
     void OnTypeSelected(wxCommandEvent &event);
     void CreateControls();
 public:
-    KeyValueEditorDialog(wxWindow *parent, const wxString& title, const wxString& key, const RedisValue& value);
+    KeyValueEditorDialog(wxWindow *parent, const wxString& title, const wxString& key, const RedisSimpleValue& value);
 
     wxString GetKey() { return m_key; }
-    RedisValue GetValue() const;
+    RedisSimpleValue GetValue() const;
 };
 
 #endif // KVEDITORDIALOG_H

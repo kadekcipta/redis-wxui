@@ -1,8 +1,15 @@
 #ifndef QUERYPANEL_H
 #define QUERYPANEL_H
 
-#include <wx/notebook.h>
 #include "redisconnection.h"
+
+class wxDialog;
+class wxWindow;
+class wxString;
+class wxCommandEvent;
+class wxInitDialogEvent;
+class wxPanel;
+class wxNotebook;
 
 enum {
     ID_COMMAND_FIND_KEYS = 200,
@@ -32,10 +39,8 @@ private:
     void OnKeyDoubleClicked(wxCommandEvent& evt);
 
     void IterateArrayResponse(redisReply **response, size_t length);
-
-protected:
-    void DoFindKeys(const wxString& keyPatterns);
-    void DoExecuteCommand(const wxString& command);
+    void FindKeys(const wxString& keyFilter);
+    void ExecuteCommand(const wxString& command);
 
 public:
     QueryPanel(wxWindow *parent, RedisConnection *connection);

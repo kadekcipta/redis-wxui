@@ -136,23 +136,23 @@ wxString QueryPanel::GetSelectedKey() const
 
 void QueryPanel::OnFind(wxCommandEvent& evt)
 {
-    DoFindKeys(GetSearchText());
+    FindKeys(GetSearchText());
 }
 
 void QueryPanel::OnRawCommand(wxCommandEvent &evt)
 {
-    DoExecuteCommand(GetCommandText());
+    ExecuteCommand(GetCommandText());
 }
 
 void QueryPanel::OnEnterKey(wxKeyEvent& evt)
 {
     if (evt.GetEventObject() == FindWindow(ID_TEXT_KEY))
     {
-        DoFindKeys(GetSearchText());
+        FindKeys(GetSearchText());
     }
     else if (evt.GetEventObject() == FindWindow(ID_TEXT_COMMAND))
     {
-        DoExecuteCommand(GetCommandText());
+        ExecuteCommand(GetCommandText());
     }
 }
 
@@ -161,11 +161,11 @@ void QueryPanel::OnDisconnect(wxCommandEvent& evt)
     CloseConnection();
 }
 
-void QueryPanel::DoExecuteCommand(const wxString &command)
+void QueryPanel::ExecuteCommand(const wxString &command)
 {
     if (!command.IsEmpty() && m_connection != NULL && m_connection->IsConnected())
     {
-        RedisValue ret = m_connection->ExecuteCommand(command);
+        RedisSimpleValue ret = m_connection->ExecuteCommand(command);
         if (ret.GetValueType() != REDIS_NONE_VALUE)
         {
             wxTextCtrl *result = (wxTextCtrl*)FindWindow(ID_TEXT_COMMAND_RESULT);
@@ -177,13 +177,12 @@ void QueryPanel::DoExecuteCommand(const wxString &command)
     }
 }
 
-void QueryPanel::DoFindKeys(const wxString& keyPatterns)
+void QueryPanel::FindKeys(const wxString& keyFilter)
 {
     GetKeyListBox()->Clear();
     if (m_connection)
     {
-        m_connection->FindKV(keyPatterns);
-
+        m_connection->FindKeys(keyFilter);
         wxArrayString &result = m_connection->GetKeysResult();
         for (int i = 0; i < result.Count(); i++)
         {
@@ -219,7 +218,7 @@ void QueryPanel::EditKeyValue()
 
 void QueryPanel::AddKeyValue()
 {
-    KeyValueEditorDialog dlg(this, wxT("Add Key-Value Pair"), "", RedisValue(""));
+    KeyValueEditorDialog dlg(this, wxT("Add Key-Value Pair"), "", RedisSimpleValue(""));
     if (dlg.ShowModal() == wxID_OK && m_connection != NULL && m_connection->IsConnected())
     {
         m_connection->SetValue(dlg.GetKey(), dlg.GetValue());
@@ -251,7 +250,7 @@ void QueryPanel::SelectDb()
         if (m_connection->SelectDb(selectedDb))
         {
             m_currentDb = selectedDb;
-            DoFindKeys(GetSearchText());
+            FindKeys(GetSearchText());
         }
     }
 }

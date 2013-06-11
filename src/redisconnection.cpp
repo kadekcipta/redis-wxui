@@ -35,7 +35,7 @@ bool RedisConnection::Connect()
         if (m_remoteHost == "")
             return false;
 
-        timeval tv = { 1, 500000 };
+        timeval tv = { 5, 0 };
         m_redisContext = (redisContext*)redisConnectWithTimeout(m_remoteHost.GetData().AsChar(), m_remotePort, tv);
         if (m_redisContext != NULL)
         {
@@ -73,83 +73,62 @@ bool RedisConnection::SelectDb(uint db)
     return ret;
 }
 
-RedisValue RedisConnection::GetValue(const wxString& key)
+RedisSimpleValue RedisConnection::GetValue(const wxString& key)
 {
     if (!IsConnected())
-        return RedisValue();
+        return RedisSimpleValue();
 
     redisReply *reply = (redisReply*)redisCommand(m_redisContext, "GET %s", key.GetData().AsChar());
     if (reply != NULL) {
         switch (reply->type)
         {
         case REDIS_REPLY_STRING:
-            return RedisValue(wxString(reply->str));
+            return RedisSimpleValue(wxString(reply->str));
             break;
 
         case REDIS_REPLY_INTEGER:
-            return RedisValue(reply->integer);
+            return RedisSimpleValue(reply->integer);
             break;
         }
 
         freeReplyObject(reply);
     }
 
-    return RedisValue();
+    return RedisSimpleValue();
 }
 
-wxString RedisConnection::CheckReply(redisReply *reply) const
-{
-    wxString ret(wxEmptyString);
-
-    if (reply != NULL) {
-        switch (reply->type)
-        {
-        case REDIS_REPLY_ERROR:
-            ret = wxString(reply->str, reply->len);
-            break;
-
-        case REDIS_REPLY_STATUS:
-            ret = wxString(reply->str, reply->len);
-            break;
-
-        }
-    }
-
-    return wxEmptyString;
-}
-
-RedisValue RedisConnection::ExecuteCommand(const wxString& command)
+RedisSimpleValue RedisConnection::ExecuteCommand(const wxString& command)
 {
     if (!IsConnected())
-        return RedisValue();
+        return RedisSimpleValue();
 
     wxString _command(command);
     if (_command.Trim(false).Upper().StartsWith("MONITOR"))
-        return RedisValue();
+        return RedisSimpleValue();
 
     redisReply *reply = (redisReply*)redisCommand(m_redisContext, command.GetData().AsChar());
     if (reply != NULL) {
 
-        RedisValue ret;
+        RedisSimpleValue ret;
 
         switch (reply->type)
         {
         case REDIS_REPLY_STATUS:
         case REDIS_REPLY_STRING:
         case REDIS_REPLY_ERROR:
-            ret = RedisValue(wxString(reply->str));
+            ret = RedisSimpleValue(wxString(reply->str));
             break;
 
         case REDIS_REPLY_ARRAY:
-            ret = RedisValue(ArrayReplyToString(reply->element, reply->elements));
+            ret = RedisSimpleValue(ArrayReplyToString(reply->element, reply->elements));
             break;
 
         case REDIS_REPLY_NIL:
-            ret = RedisValue("(nil)");
+            ret = RedisSimpleValue("(nil)");
             break;
 
         case REDIS_REPLY_INTEGER:
-            ret = RedisValue(reply->integer);
+            ret = RedisSimpleValue(reply->integer);
             break;
         }
 
@@ -158,7 +137,7 @@ RedisValue RedisConnection::ExecuteCommand(const wxString& command)
         return ret;
     }
 
-    return RedisValue();
+    return RedisSimpleValue();
 }
 
 bool RedisConnection::DeleteKey(const wxString &key)
@@ -176,7 +155,7 @@ bool RedisConnection::DeleteKey(const wxString &key)
     return ret;
 }
 
-bool RedisConnection::SetValue(const wxString &key, const RedisValue &value)
+bool RedisConnection::SetValue(const wxString &key, const RedisSimpleValue &value)
 {
     if (!IsConnected())
         return false;
@@ -252,7 +231,7 @@ wxString RedisConnection::ArrayReplyToString(redisReply **response, size_t lengt
     return tmp;
 }
 
-void RedisConnection::IterateArrayResponse(redisReply **response, size_t length)
+void RedisConnection::HandleKeysResponse(redisReply **response, size_t length)
 {
     m_redisKeys.Clear();
     redisReply **rep = response;
@@ -269,29 +248,29 @@ void RedisConnection::IterateArrayResponse(redisReply **response, size_t length)
     }
 }
 
-int RedisConnection::FindKV(const wxString& keyPatterns)
+int RedisConnection::FindKeys(const wxString& keyFilter)
 {
     if (m_redisContext == NULL)
         return -1;
 
-    wxString realPatterns = keyPatterns;
-    realPatterns.Trim();
+    wxString _keyFilter = keyFilter;
+    _keyFilter.Trim();
 
-    if (keyPatterns == "")
-        realPatterns = "*";
+    if (keyFilter == "")
+        _keyFilter = "*";
 
-    int nRet = 0;
-    redisReply *reply = (redisReply*)redisCommand(m_redisContext, "KEYS %s", realPatterns.GetData().AsChar());
+    int nKeys = 0;
+    redisReply *reply = (redisReply*)redisCommand(m_redisContext, "KEYS %s", _keyFilter.GetData().AsChar());
     if (reply != NULL && reply->type == REDIS_REPLY_ARRAY)
     {
-        IterateArrayResponse(reply->element, reply->elements);
-        nRet = (int)reply->elements;
+        HandleKeysResponse(reply->element, reply->elements);
+        nKeys = (int)reply->elements;
         freeReplyObject(reply);
     }
 
     GetServerInfo();
 
-    return nRet;
+    return nKeys;
 }
 
 

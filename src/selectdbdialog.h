@@ -1,14 +1,14 @@
 #ifndef SELECTDBDIALOG_H
 #define SELECTDBDIALOG_H
 
-#include <wx/wxprec.h>
-#ifndef WX_PRECOMP
-    #include <wx/wx.h>
-#endif
-
 enum {
     ID_DB
 };
+
+class wxDialog;
+class wxWindow;
+class wxString;
+class wxInitDialogEvent;
 
 class SelectDbdialog : public wxDialog
 {

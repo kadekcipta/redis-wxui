@@ -19,7 +19,7 @@ const wxString SERVER_ATTRIBUTES[N_SERVER_ATTRIBUTES] = {
     "used_memory"
 };
 
-class RedisValue
+class RedisSimpleValue
 {
 private:
     wxString    m_strValue;
@@ -28,24 +28,24 @@ private:
 
 public:
 
-    RedisValue()
+    RedisSimpleValue()
     {
         m_valueType = REDIS_NONE_VALUE;
     }
 
-    RedisValue(int intValue)
+    RedisSimpleValue(int intValue)
     {
         m_valueType = REDIS_INT_VALUE;
         m_intValue = intValue;
     }
 
-    RedisValue(const wxString& strValue)
+    RedisSimpleValue(const wxString& strValue)
     {
         m_valueType = REDIS_STR_VALUE;
         m_strValue = strValue;
     }
 
-    RedisValue(const RedisValue& rhs)
+    RedisSimpleValue(const RedisSimpleValue& rhs)
     {
         m_valueType = rhs.m_valueType;
         m_intValue = rhs.m_intValue;
@@ -75,9 +75,8 @@ private:
     wxArrayString   m_redisKeys;
 
 private:
-    void IterateArrayResponse(redisReply **response, size_t length);
+    void HandleKeysResponse(redisReply **response, size_t length);
     wxString ArrayReplyToString(redisReply **response, size_t length, int indent=-1);
-    wxString CheckReply(redisReply *reply) const;
 
 public:
     RedisConnection(const wxString& remoteHost, int remotePort=6379, const wxString& title="");
@@ -95,15 +94,15 @@ public:
         return false;
     }
 
-    RedisValue ExecuteCommand(const wxString& key);
+    RedisSimpleValue ExecuteCommand(const wxString& key);
 
-    RedisValue GetValue(const wxString& key);
-    bool SetValue(const wxString& key, const RedisValue& value);
+    RedisSimpleValue GetValue(const wxString& key);
+    bool SetValue(const wxString& key, const RedisSimpleValue& value);
     bool DeleteKey(const wxString& key);
     bool SelectDb(uint db);
     bool Expire(const wxString& key, int seconds);
 
-    int FindKV(const wxString& keyPatterns);
+    int FindKeys(const wxString& keyPatterns);
     wxArrayString& GetKeysResult() { return m_redisKeys; }
 
     const wxString& GetRemoteHost() { return m_remoteHost; }

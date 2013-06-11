@@ -1,8 +1,10 @@
 #ifndef CONNECTIONDIALOG_H
 #define CONNECTIONDIALOG_H
 
-#include <wx/window.h>
-#include <wx/dialog.h>
+class wxDialog;
+class wxWindow;
+class wxString;
+class wxInitDialogEvent;
 
 enum {
     ID_HOSTNAME,

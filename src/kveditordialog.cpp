@@ -10,7 +10,7 @@
 
 #include "kveditordialog.h"
 
-KeyValueEditorDialog::KeyValueEditorDialog(wxWindow *parent, const wxString& title, const wxString& key, const RedisValue& value):
+KeyValueEditorDialog::KeyValueEditorDialog(wxWindow *parent, const wxString& title, const wxString& key, const RedisSimpleValue& value):
     wxDialog(parent, wxID_ANY, title,  wxDefaultPosition, wxSize(-1,-1)), m_key(key), m_redisValue(value)
 {
     // currently doesn't use since redis doesn's have dedicated integer type
@@ -31,7 +31,7 @@ void KeyValueEditorDialog::CreateControls()
 
     wxBoxSizer *hboxKeyName = new wxBoxSizer(wxHORIZONTAL);
     hboxKeyName->Add(new wxStaticText(this, wxID_ANY, wxT("Key Name")), 1, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND | wxRIGHT, 8);
-    wxTextCtrl *txtKeyName = new wxTextCtrl(this, ID_KEY_NAME);
+    wxTextCtrl *txtKeyName = new wxTextCtrl(this, ID_KEY_NAME, wxEmptyString, wxDefaultPosition, wxSize(500, -1));
     hboxKeyName->Add(txtKeyName, 4, wxALIGN_LEFT );
     vbox->Add(hboxKeyName, 0, wxEXPAND | wxALL & ~wxBOTTOM, 8);
 
@@ -63,15 +63,15 @@ void KeyValueEditorDialog::OnInitDialog(wxInitDialogEvent &event)
 }
 
 // Currently this just works for the string value
-RedisValue KeyValueEditorDialog::GetValue() const
+RedisSimpleValue KeyValueEditorDialog::GetValue() const
 {
     // type of integer
     long v = 0;
     if (m_value.ToLong(&v))
     {
-        return RedisValue((int)v);
+        return RedisSimpleValue((int)v);
     }
 
     // type of string
-    return RedisValue(m_value);
+    return RedisSimpleValue(m_value);
 }
