@@ -29,7 +29,7 @@ QueryPanel::QueryPanel(wxWindow *parent, RedisConnection *connection):
 
     // dashboard
     wxPanel *dashboardPanel = new wxPanel(expTabs);
-    expTabs->AddPage(dashboardPanel, wxT("Dashboard"));
+    expTabs->AddPage(dashboardPanel, wxT("Server Status"));
 
     // keys searching
     wxPanel *keysSearchingPanel = new wxPanel(expTabs);

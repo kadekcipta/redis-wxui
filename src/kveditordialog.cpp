@@ -26,7 +26,7 @@ void KeyValueEditorDialog::CreateControls()
 {
     wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
 
-    vbox->Add(new wxStaticText(this, wxID_ANY, wxT("If the same key name exists, it will replace with the current value.")), 1, wxEXPAND | wxALL, 8);
+    vbox->Add(new wxStaticText(this, wxID_ANY, wxT("It will overwrite the value of the existing key with the same name.")), 1, wxEXPAND | wxALL, 8);
     vbox->AddSpacer(10);
 
     wxBoxSizer *hboxKeyName = new wxBoxSizer(wxHORIZONTAL);
