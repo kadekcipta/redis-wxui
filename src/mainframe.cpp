@@ -13,6 +13,7 @@
 #include "querypanel.h"
 #include "connectiondialog.h"
 #include "kveditordialog.h"
+#include "simplechart.h"
 #include "res/network.xpm"
 
 MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(750, 700))
@@ -25,6 +26,8 @@ MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDe
 void MainFrame::InitializeControls()
 {
     m_mainTab = new wxNotebook(this, ID_MAIN_TAB, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM);
+    // test chart
+//    SimpleChart *chart = new SimpleChart(this, wxID_ANY);
 }
 
 void MainFrame::InitializeMenubar()

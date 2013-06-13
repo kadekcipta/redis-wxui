@@ -21,6 +21,7 @@
 #include "querypanel.h"
 #include "kveditordialog.h"
 #include "selectdbdialog.h"
+#include "simplechart.h"
 
 QueryPanel::QueryPanel(wxWindow *parent, RedisConnection *connection):
     wxPanel(parent), m_connection(connection), m_currentDb(0)
@@ -29,6 +30,11 @@ QueryPanel::QueryPanel(wxWindow *parent, RedisConnection *connection):
 
     // dashboard
     wxPanel *dashboardPanel = new wxPanel(expTabs);
+    wxBoxSizer *vboxDashboard = new wxBoxSizer(wxVERTICAL);
+    SimpleChart *chart = new SimpleChart(dashboardPanel, wxID_ANY);
+    vboxDashboard->Add(chart, 1, wxEXPAND | wxALL, 3);
+    vboxDashboard->Add(-1, -1, 1);
+    dashboardPanel->SetSizer(vboxDashboard);
     expTabs->AddPage(dashboardPanel, wxT("Server Status"));
 
     // keys searching
