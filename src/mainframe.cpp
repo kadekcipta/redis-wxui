@@ -25,9 +25,9 @@ MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDe
 
 void MainFrame::InitializeControls()
 {
-//    m_mainTab = new wxNotebook(this, ID_MAIN_TAB, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM);
+    m_mainTab = new wxNotebook(this, ID_MAIN_TAB, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM);
     // test chart
-    TimeLogChart *chart = new TimeLogChart(this, wxID_ANY, wxT("Memory Status"));
+//    TimeLogChart *chart = new TimeLogChart(this, wxID_ANY, wxT("Memory Status"));
 }
 
 void MainFrame::InitializeMenubar()

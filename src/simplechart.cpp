@@ -73,7 +73,7 @@ void TimeLogChart::InitDefaults()
     AddChart("User", wxColour(*wxBLUE));
     AddChart("System", *wxRED);
 
-    AddChartValue(0, 1.0);
+//    AddChartValue(0, 1.0);
 //    AddChartValue(0, 1.0);
 //    AddChartValue(0, 12.0);
 //    AddChartValue(0, 12.0);
@@ -91,7 +91,7 @@ void TimeLogChart::InitDefaults()
 //        AddChartValue(0, 15.0);
 //    }
 
-    AddChartValue(1, 1.0);
+//    AddChartValue(1, 1.0);
 //    AddChartValue(1, 12.0);
 //    AddChartValue(1, 12.0);
 //    AddChartValue(1, 20.0);
@@ -216,6 +216,8 @@ void TimeLogChart::DrawAxis(wxPaintDC &dc)
         }
     }
 
+    dc.DrawLine(dx, topBound, dx, bottomBound);
+
     int yValue = m_maxValue;
     int yValueSteps = (m_minValue-m_maxValue)/m_valueDivisions;
     int ySteps = ValueToPixel((m_maxValue - m_minValue)/m_valueDivisions);
@@ -251,24 +253,27 @@ void TimeLogChart::DrawCharts(wxPaintDC &dc)
     for (int i = 0; i < m_chartCollection->GetCount(); i++)
     {
         ChartValueList *list =  m_chartCollection->Item(i)->GetData();
-        ChartValueList::reverse_iterator iter;
-        dc.SetPen(wxPen(list->GetColour()));
-
-        int dx = m_axisBounds.GetRight();
-        wxPoint points[list->GetCount()];
-        int n = 0;
-
-        for (iter = list->rbegin(); iter != list->rend(); ++iter)
+        int nValues = list->GetCount();
+        if (nValues > 1)
         {
-            dx = m_axisBounds.GetRight() - (int)floor(n*m_axisBounds.GetWidth() / (double)(m_logDuration-1));
-            double *v = *iter;
-            int yValue = ValueToPixel(*v);
-            points[n] = wxPoint(dx, m_axisBounds.GetBottom()-yValue);
-            n++;
-//            wxSafeShowMessage("TEST", wxString::Format("%d", dx));
-        }
+            ChartValueList::reverse_iterator iter;
+            dc.SetPen(wxPen(list->GetColour()));
 
-        if (list != NULL)
-            dc.DrawLines(list->GetCount(), points);
+            int dx = m_axisBounds.GetRight();
+            wxPoint points[nValues];
+            int n = 0;
+
+            for (iter = list->rbegin(); iter != list->rend(); ++iter)
+            {
+                dx = m_axisBounds.GetRight() - (int)floor(n*m_axisBounds.GetWidth() / (double)(m_logDuration-1));
+                double *v = *iter;
+                int yValue = ValueToPixel(*v);
+                points[n] = wxPoint(dx, m_axisBounds.GetBottom()-yValue);
+                n++;
+    //            wxSafeShowMessage("TEST", wxString::Format("%d", dx));
+            }
+
+            dc.DrawSpline(list->GetCount(), points);
+        }
     }
 }

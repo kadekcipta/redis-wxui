@@ -107,10 +107,10 @@ void QueryPanel::OnTimer(wxTimerEvent &evt)
     TimeLogChart *chart = (TimeLogChart *)FindWindow(ID_MEMORY_CHART);
     if (chart != NULL)
     {
-//        double v = (double)rand()/100;
-//        chart->AddChartValue(0, v);
-//        v = (double)rand()/100;
-//        chart->AddChartValue(1, v);
+        double v = (double)rand()/100;
+        chart->AddChartValue(0, v);
+        v = (double)rand()/100;
+        chart->AddChartValue(1, v);
     }
 }
 
