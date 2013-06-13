@@ -16,7 +16,7 @@
 #include "simplechart.h"
 #include "res/network.xpm"
 
-MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(750, 700))
+MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(750, 400))
 {
     InitializeMenubar();
     InitializeControls();
@@ -116,7 +116,7 @@ void MainFrame::OnRedisConnectedUpdateUI(wxUpdateUIEvent &evt)
 
 QueryPanel * MainFrame::GetActivePanel()
 {
-    if (m_mainTab->GetPageCount() > 0)
+    if (m_mainTab != NULL && m_mainTab->GetPageCount() > 0)
     {
         return (QueryPanel*)m_mainTab->GetCurrentPage();
     }
@@ -206,7 +206,7 @@ void MainFrame::OnQuit(wxCommandEvent& evt)
 
 void MainFrame::OnClose(wxCloseEvent &evt)
 {
-    if (m_mainTab->GetPageCount() > 0)
+    if (m_mainTab != NULL && m_mainTab->GetPageCount() > 0)
     {
 
         wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Are you sure to quit?"), wxT("Question"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);

@@ -31,7 +31,7 @@ QueryPanel::QueryPanel(wxWindow *parent, RedisConnection *connection):
     // dashboard
     wxPanel *dashboardPanel = new wxPanel(expTabs);
     wxBoxSizer *vboxDashboard = new wxBoxSizer(wxVERTICAL);
-    SimpleChart *chart = new SimpleChart(dashboardPanel, wxID_ANY);
+    TimeLogChart *chart = new TimeLogChart(dashboardPanel, wxID_ANY);
     vboxDashboard->Add(chart, 1, wxEXPAND | wxALL, 3);
     vboxDashboard->Add(-1, -1, 1);
     dashboardPanel->SetSizer(vboxDashboard);
