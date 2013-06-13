@@ -36,7 +36,7 @@ void TimeLogChart::InitDefaults()
     m_chartCollection = new ChartCollection();
     m_valueFont = new wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Courier 10 Pitch"));
 
-    m_xMinValue = 0.0;
+    m_xMinValue = 1.0;
     m_xMaxValue = 60.0;
     m_xDivs = 6;
 
@@ -48,6 +48,7 @@ void TimeLogChart::InitDefaults()
     AddChart(wxEmptyString);
 
     AddChartValue(0, 1.0);
+    AddChartValue(0, 1.0);
     AddChartValue(0, 12.0);
     AddChartValue(0, 12.0);
     AddChartValue(0, 20.0);
@@ -56,7 +57,21 @@ void TimeLogChart::InitDefaults()
     AddChartValue(0, 12.0);
     AddChartValue(0, 20.0);
     AddChartValue(0, 20.0);
-    AddChartValue(0, 20.0);
+//    AddChartValue(0, 20.0);
+//    AddChartValue(0, 50.0);
+
+//    AddChart(wxEmptyString);
+
+//    AddChartValue(1, 1.0);
+//    AddChartValue(1, 12.0);
+//    AddChartValue(1, 12.0);
+//    AddChartValue(1, 20.0);
+//    AddChartValue(1, 1.0);
+//    AddChartValue(1, 12.0);
+//    AddChartValue(1, 12.0);
+//    AddChartValue(1, 20.0);
+//    AddChartValue(1, 20.0);
+//    AddChartValue(1, 20.0);
 }
 
 void TimeLogChart::AddChart(const wxString &label)
@@ -101,38 +116,34 @@ void TimeLogChart::DrawAxis(wxPaintDC &dc)
 {
     const int MARKER_OFFSET = 5;
 
-    dc.SetPen(*wxLIGHT_GREY_PEN);
     dc.SetBackground(wxBrush(wxColour(0x666666)));
-
-    int xSteps = XValueToPixel((m_xMaxValue - m_xMinValue)/m_xDivs);
-    int dx = m_axisBounds.GetLeft();
-
     dc.SetPen(wxPen(*wxLIGHT_GREY, 1, wxPENSTYLE_DOT));
 
+    int rightBound = m_axisBounds.GetLeft() + XValueToPixel(m_xMaxValue-m_xMinValue);
     int bottomBound = m_axisBounds.GetTop() + YValueToPixel(m_yMaxValue-m_yMinValue);
-    int xValue = m_xMaxValue;
-    int xValueSteps = (m_xMinValue-m_xMaxValue)/m_xDivs;
+    int xSteps = XValueToPixel((m_xMaxValue - m_xMinValue)/m_xDivs);
+    int dx = m_axisBounds.GetLeft();
+    int xValue = m_xMinValue;
+    int xValueSteps = (m_xMaxValue-m_xMinValue)/m_xDivs;
 
     wxFont savedFont = dc.GetFont();
     dc.SetFont(*m_valueFont);
 
-    // draw horizontal divisions
+    // draw horizontal divisions from right to left
     for (int n = 0; n <= m_xDivs; n++)
     {
         dc.DrawLine(dx, m_axisBounds.GetTop(), dx, bottomBound);
         // draw axis marker
         wxString s = wxString::Format(wxT("%d"), xValue);
         wxSize ext = dc.GetTextExtent(s);
-
         dc.DrawText(s, dx - ext.GetWidth()/2, bottomBound + MARKER_OFFSET);
-
         dx += xSteps;
         xValue += xValueSteps;
     }
 
     int yValue = m_yMaxValue;
     int yValueSteps = (m_yMinValue-m_yMaxValue)/m_yDivs;
-    int rightBound = m_axisBounds.GetLeft() + XValueToPixel(m_xMaxValue-m_xMinValue);
+
     int ySteps = YValueToPixel((m_yMaxValue - m_yMinValue)/m_yDivs);
     int dy = m_axisBounds.GetTop();
 
@@ -169,8 +180,9 @@ void TimeLogChart::DrawCharts(wxPaintDC &dc)
         ChartValueList *list =  m_chartCollection->Item(i)->GetData();
         ChartValueList::reverse_iterator iter;
 
-        int dx = m_axisBounds.GetRight();
-        int xSteps = XValueToPixel(1.0);
+        int dx = m_axisBounds.GetLeft();
+        int xSteps = m_axisBounds.GetWidth()/(m_xMaxValue-m_xMinValue);
+//        wxSafeShowMessage("TEST", wxString::Format("%d", xSteps));
 
         wxPoint points[list->GetCount()];
         int n = 0;
@@ -182,8 +194,9 @@ void TimeLogChart::DrawCharts(wxPaintDC &dc)
             double *v = *iter;
             int yValue = YValueToPixel(*v);
             points[n] = wxPoint(dx, m_axisBounds.GetBottom()-yValue);
-            dx -= xSteps;
+            dx += xSteps;
             n++;
+
 //            wxSafeShowMessage("TEST", wxString::Format("%f", *v));
         }
 
