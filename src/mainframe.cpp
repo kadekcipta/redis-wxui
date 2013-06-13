@@ -16,7 +16,7 @@
 #include "simplechart.h"
 #include "res/network.xpm"
 
-MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(750, 400))
+MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(750, 700))
 {
     InitializeMenubar();
     InitializeControls();
@@ -27,7 +27,7 @@ void MainFrame::InitializeControls()
 {
 //    m_mainTab = new wxNotebook(this, ID_MAIN_TAB, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM);
     // test chart
-    TimeLogChart *chart = new TimeLogChart(this, wxID_ANY);
+    TimeLogChart *chart = new TimeLogChart(this, wxID_ANY, wxT("Memory Status"));
 }
 
 void MainFrame::InitializeMenubar()

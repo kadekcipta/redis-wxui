@@ -31,7 +31,7 @@ QueryPanel::QueryPanel(wxWindow *parent, RedisConnection *connection):
     // dashboard
     wxPanel *dashboardPanel = new wxPanel(expTabs);
     wxBoxSizer *vboxDashboard = new wxBoxSizer(wxVERTICAL);
-    TimeLogChart *chart = new TimeLogChart(dashboardPanel, wxID_ANY);
+    TimeLogChart *chart = new TimeLogChart(dashboardPanel, ID_MEMORY_CHART, wxT("Memory Status"));
     vboxDashboard->Add(chart, 1, wxEXPAND | wxALL, 3);
     vboxDashboard->Add(-1, -1, 1);
     dashboardPanel->SetSizer(vboxDashboard);
@@ -80,6 +80,10 @@ QueryPanel::QueryPanel(wxWindow *parent, RedisConnection *connection):
 
     SetSizer(hboxMain);
 
+    m_timer = new wxTimer(this, ID_TIMER);
+    m_timer->Start(1000);
+
+    Connect(ID_TIMER, wxEVT_TIMER, wxTimerEventHandler(QueryPanel::OnTimer));
     Connect(ID_COMMAND_FIND_KEYS, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(QueryPanel::OnFind));
     Connect(ID_TEXT_KEY, wxEVT_COMMAND_TEXT_ENTER, wxKeyEventHandler(QueryPanel::OnEnterKey));
     Connect(ID_LBOX_KEYS, wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler(QueryPanel::OnKeySelected));
@@ -94,6 +98,19 @@ QueryPanel::~QueryPanel()
     {
         delete m_connection;
         m_connection = NULL;
+    }
+}
+
+void QueryPanel::OnTimer(wxTimerEvent &evt)
+{
+//    wxSafeShowMessage("TEST", wxString::Format("%d", rand()));
+    TimeLogChart *chart = (TimeLogChart *)FindWindow(ID_MEMORY_CHART);
+    if (chart != NULL)
+    {
+//        double v = (double)rand()/100;
+//        chart->AddChartValue(0, v);
+//        v = (double)rand()/100;
+//        chart->AddChartValue(1, v);
     }
 }
 
@@ -199,6 +216,13 @@ void QueryPanel::FindKeys(const wxString& keyFilter)
 
 void QueryPanel::CloseConnection()
 {
+    if (m_timer != NULL)
+    {
+        m_timer->Stop();
+        delete m_timer;
+        m_timer = NULL;
+    }
+
     wxNotebook *nb = ((wxNotebook*)GetParent());
     for (int i = 0; i < nb->GetPageCount(); i++)
     {

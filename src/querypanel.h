@@ -10,6 +10,8 @@ class wxCommandEvent;
 class wxInitDialogEvent;
 class wxPanel;
 class wxNotebook;
+class wxTimerEvent;
+class wxTimer;
 
 enum {
     ID_COMMAND_FIND_KEYS = 200,
@@ -20,7 +22,9 @@ enum {
     ID_TEXT_KEY,
     ID_TEXT_COMMAND,
     ID_LBOX_KEYS,
-    ID_TEXT_COMMAND_RESULT
+    ID_TEXT_COMMAND_RESULT,
+    ID_TIMER,
+    ID_MEMORY_CHART
 };
 
 class QueryPanel : public wxPanel
@@ -28,9 +32,11 @@ class QueryPanel : public wxPanel
 private:
     RedisConnection *m_connection;
     uint         m_currentDb;
+    wxTimer     *m_timer;
 
     wxListBox *GetKeyListBox() const;
 
+    void OnTimer(wxTimerEvent& evt);
     void OnFind(wxCommandEvent& evt);
     void OnRawCommand(wxCommandEvent& evt);
     void OnEnterKey(wxKeyEvent& evt);
