@@ -312,3 +312,46 @@ wxString RedisConnection::GetServerInfo()
 
     return tmp;
 }
+
+RedisMemoryStatus RedisConnection::GetMemoryStatus()
+{
+    RedisMemoryStatus status;
+
+    redisReply *reply = (redisReply*)redisCommand(m_redisContext, "INFO");
+    if (reply != NULL)
+    {
+        wxArrayString tokens;
+
+        if (reply->type == REDIS_REPLY_STRING)
+        {
+            tokens = wxStringTokenize(reply->str, "\r\n");
+        }
+
+        freeReplyObject(reply);
+
+        for (int i = 0; i < tokens.Count(); i++)
+        {
+            wxString token = tokens[i];
+            if (token.StartsWith("#"))
+                continue;
+
+            wxArrayString kv = wxStringTokenize(token, ":");
+            if (kv.GetCount() == 2)
+            {
+                long v = -1;
+                wxString sValue = kv[1];
+                sValue.ToLong(&v);
+                if (kv[0] == "used_memory")
+                {
+                    status.SetUsed(v);
+                }
+                else if (kv[0] == "used_memory_peak")
+                {
+                    status.SetPeak(v);
+                }
+            }
+        }
+    }
+
+    return status;
+}

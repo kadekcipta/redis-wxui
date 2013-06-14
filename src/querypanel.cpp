@@ -31,9 +31,18 @@ QueryPanel::QueryPanel(wxWindow *parent, RedisConnection *connection):
     // dashboard
     wxPanel *dashboardPanel = new wxPanel(expTabs);
     wxBoxSizer *vboxDashboard = new wxBoxSizer(wxVERTICAL);
-    TimeLogChart *chart = new TimeLogChart(dashboardPanel, ID_MEMORY_CHART, wxT("Memory Status"));
-    vboxDashboard->Add(chart, 1, wxEXPAND | wxALL, 3);
-    vboxDashboard->Add(-1, -1, 1);
+    TimeLogChart *memChart = new TimeLogChart(dashboardPanel, ID_MEMORY_CHART, wxT("Memory Status"));
+    memChart->AddChart("Used Memory", wxColour(*wxBLUE));
+    memChart->AddChart("Peak Used Memory", *wxRED);
+
+    vboxDashboard->Add(memChart, 1, wxEXPAND | wxALL, 3);
+
+    TimeLogChart *cpuChart = new TimeLogChart(dashboardPanel, ID_MEMORY_CHART, wxT("CPU Usages (Not Ready Yet)"));
+    cpuChart->AddChart("Used CPU (%)", wxColour(*wxGREEN));
+    cpuChart->AddChart("Used CPU Peak (%)", *wxYELLOW);
+
+    vboxDashboard->Add(cpuChart, 1, wxEXPAND | wxALL, 3);
+//    vboxDashboard->Add(-1, -1, 1);
     dashboardPanel->SetSizer(vboxDashboard);
     expTabs->AddPage(dashboardPanel, wxT("Server Status"));
 
@@ -103,15 +112,29 @@ QueryPanel::~QueryPanel()
 
 void QueryPanel::OnTimer(wxTimerEvent &evt)
 {
-//    wxSafeShowMessage("TEST", wxString::Format("%d", rand()));
-    TimeLogChart *chart = (TimeLogChart *)FindWindow(ID_MEMORY_CHART);
-    if (chart != NULL)
+    if (m_connection != NULL && m_connection->IsConnected())
     {
-        double v = (double)rand()/100;
-        chart->AddChartValue(0, v);
-        v = (double)rand()/100;
-        chart->AddChartValue(1, v);
+        TimeLogChart *chart = (TimeLogChart *)FindWindow(ID_MEMORY_CHART);
+        if (chart != NULL)
+        {
+            RedisMemoryStatus memStats = m_connection->GetMemoryStatus();
+//            wxSafeShowMessage("TEST", wxString::Format("%f", (double)memStats.GetUsed()));
+            double v = (double)memStats.GetUsed();
+            chart->AddChartValue(0, v);
+            v = (double)memStats.GetPeak();
+            chart->AddChartValue(1, v);
+        }
     }
+
+//    wxSafeShowMessage("TEST", wxString::Format("%d", rand()));
+//    TimeLogChart *chart = (TimeLogChart *)FindWindow(ID_MEMORY_CHART);
+//    if (chart != NULL)
+//    {
+//        double v = (double)rand()/100;
+//        chart->AddChartValue(0, v);
+//        v = (double)rand()/100;
+//        chart->AddChartValue(1, v);
+//    }
 }
 
 wxString QueryPanel::GetSearchText() const

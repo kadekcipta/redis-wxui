@@ -63,6 +63,46 @@ public:
     int GetValueType() const { return m_valueType; }
 };
 
+class RedisMemoryStatus
+{
+private:
+    long    m_used;
+    long    m_peak;
+
+public:
+    RedisMemoryStatus()
+    {
+        m_used = -1;
+        m_peak = -1;
+    }
+
+    RedisMemoryStatus(const RedisMemoryStatus& rhs)
+    {
+        m_used = rhs.GetUsed();
+        m_peak = rhs.GetPeak();
+    }
+
+    void SetUsed(long value)
+    {
+        m_used = value;
+    }
+
+    long GetUsed() const
+    {
+        return m_used;
+    }
+
+    void SetPeak(long value)
+    {
+        m_peak = value;
+    }
+
+    long GetPeak() const
+    {
+        return m_peak;
+    }
+};
+
 class RedisConnection
 {
 private:
@@ -111,6 +151,7 @@ public:
     wxString GetLastError() { return m_lastError; }
 
     wxString GetServerInfo();
+    RedisMemoryStatus GetMemoryStatus();
 };
 
 #endif // REDISCONNECTION_H

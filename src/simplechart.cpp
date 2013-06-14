@@ -53,7 +53,11 @@ void TimeLogChart::AdjustMaxValueAxis()
         }
     }
 
-    m_maxValue = maxValue;
+    if (maxValue > 100)
+    {
+        m_maxValue = maxValue * 1.5;
+    }
+
     Refresh();
 }
 
@@ -69,38 +73,6 @@ void TimeLogChart::InitDefaults()
     m_minValue = 0.0;
     m_maxValue = 100.0;
     m_valueDivisions = 5;
-
-    AddChart("User", wxColour(*wxBLUE));
-    AddChart("System", *wxRED);
-
-//    AddChartValue(0, 1.0);
-//    AddChartValue(0, 1.0);
-//    AddChartValue(0, 12.0);
-//    AddChartValue(0, 12.0);
-//    AddChartValue(0, 20.0);
-//    AddChartValue(0, 1.0);
-//    AddChartValue(0, 12.0);
-//    AddChartValue(0, 12.0);
-//    AddChartValue(0, 20.0);
-//    AddChartValue(0, 20.0);
-//    AddChartValue(0, 20.0);
-//    AddChartValue(0, 50.0);
-
-//    for (int i = 0; i < 55; i++)
-//    {
-//        AddChartValue(0, 15.0);
-//    }
-
-//    AddChartValue(1, 1.0);
-//    AddChartValue(1, 12.0);
-//    AddChartValue(1, 12.0);
-//    AddChartValue(1, 20.0);
-//    AddChartValue(1, 1.0);
-//    AddChartValue(1, 12.0);
-//    AddChartValue(1, 12.0);
-//    AddChartValue(1, 20.0);
-//    AddChartValue(1, 20.0);
-//    AddChartValue(1, 20.0);
 }
 
 void TimeLogChart::AddChart(const wxString &title, const wxColour &color)
@@ -137,9 +109,9 @@ void TimeLogChart::OnSize(wxSizeEvent &evt)
     m_backgroundBounds = GetClientRect();
     m_axisBounds = GetClientRect();
     m_axisBounds.Deflate(wxSize(10, 10));
-    m_axisBounds.SetWidth(m_axisBounds.GetWidth() - 40);
+    m_axisBounds.SetWidth(m_axisBounds.GetWidth() - 80);
     m_axisBounds.SetHeight(m_axisBounds.GetHeight() -50);
-    m_axisBounds.Offset(40, 20);
+    m_axisBounds.Offset(80, 20);
 
     Refresh();
 }
@@ -226,7 +198,7 @@ void TimeLogChart::DrawAxis(wxPaintDC &dc)
     for (int n = 0; n < m_valueDivisions; n++)
     {
         dc.DrawLine(leftBound, dy, rightBound, dy);
-        wxString s = wxString::Format(wxT("%5.1f"), (double)yValue);
+        wxString s = wxString::Format(wxT("%5.1fM"), (double)yValue/1048576);
         wxSize ext = dc.GetTextExtent(s);
         dc.DrawText(s, m_axisBounds.GetLeft()-ext.GetWidth() - MARKER_OFFSET, dy - ext.GetHeight()/2);
 
