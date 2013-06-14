@@ -313,9 +313,9 @@ wxString RedisConnection::GetServerInfo()
     return tmp;
 }
 
-RedisMemoryStatus RedisConnection::GetMemoryStatus()
+RedisSystemStatus RedisConnection::GetMemoryStatus()
 {
-    RedisMemoryStatus status;
+    RedisSystemStatus status;
 
     redisReply *reply = (redisReply*)redisCommand(m_redisContext, "INFO");
     if (reply != NULL)
@@ -338,17 +338,23 @@ RedisMemoryStatus RedisConnection::GetMemoryStatus()
             wxArrayString kv = wxStringTokenize(token, ":");
             if (kv.GetCount() == 2)
             {
-                long v = -1;
+                long lv = -1;
+                double dv = -1.0;
+
                 wxString sValue = kv[1];
-                sValue.ToLong(&v);
+                sValue.ToLong(&lv);
+                sValue.ToDouble(&dv);
+
                 if (kv[0] == "used_memory")
-                {
-                    status.SetUsed(v);
-                }
+                    status.SetUsed(lv);
                 else if (kv[0] == "used_memory_peak")
-                {
-                    status.SetPeak(v);
-                }
+                    status.SetPeak(lv);
+                else if (kv[0] == "used_memory_rss")
+                    status.SetRss(lv);
+                else if (kv[0] == "used_cpu_sys")
+                    status.SetCPUSys(dv);
+                else if (kv[0] == "used_cpu_user")
+                    status.SetCPUUser(dv);
             }
         }
     }

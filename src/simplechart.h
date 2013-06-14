@@ -50,6 +50,8 @@ private:
     int m_logTickFrequency;
     int m_logDuration; // in seconds
 
+    wxString m_valueAxisFormat;
+    double m_valueAxisScale;
     double m_maxValue;
     double m_minValue;
     int m_valueDivisions;
@@ -82,6 +84,8 @@ public:
     void OnSize(wxSizeEvent& evt);
     void OnPaint(wxPaintEvent& evt);
 
+    void SetValueAxisScale(double scale);
+    void SetValueAxisFormat(const wxString& format);
     void SetMaxValue(double value);
     double GetMaxValue();
 };

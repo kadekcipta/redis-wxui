@@ -21,6 +21,7 @@ MainFrame::MainFrame(const wxString& title): wxFrame(NULL, wxID_ANY, title, wxDe
     InitializeMenubar();
     InitializeControls();
     Center();
+    SetMinClientSize(wxSize(300, 350));
 }
 
 void MainFrame::InitializeControls()

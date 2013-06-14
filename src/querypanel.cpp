@@ -26,23 +26,29 @@
 QueryPanel::QueryPanel(wxWindow *parent, RedisConnection *connection):
     wxPanel(parent), m_connection(connection), m_currentDb(0)
 {
+    m_rawCommandFont = new wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Courier 10 Pitch"));
+
     wxNotebook *expTabs = new wxNotebook(this, ID_TAB_EXPLORE);
 
     // dashboard
     wxPanel *dashboardPanel = new wxPanel(expTabs);
     wxBoxSizer *vboxDashboard = new wxBoxSizer(wxVERTICAL);
     TimeLogChart *memChart = new TimeLogChart(dashboardPanel, ID_MEMORY_CHART, wxT("Memory Status"));
-    memChart->AddChart("Used Memory", wxColour(*wxBLUE));
-    memChart->AddChart("Peak Used Memory", *wxRED);
+    memChart->SetValueAxisFormat("%.1fM");
+    memChart->AddChart("Used", wxColour(*wxBLUE));
+    memChart->AddChart("Peak Used", *wxRED);
+    memChart->AddChart("RSS", wxColour("orange"));
 
-    vboxDashboard->Add(memChart, 1, wxEXPAND | wxALL, 3);
+    vboxDashboard->Add(memChart, 1, wxEXPAND | wxTOP | wxBOTTOM, 5);
 
-    TimeLogChart *cpuChart = new TimeLogChart(dashboardPanel, ID_MEMORY_CHART, wxT("CPU Usages (Not Ready Yet)"));
-    cpuChart->AddChart("Used CPU (%)", wxColour(*wxGREEN));
-    cpuChart->AddChart("Used CPU Peak (%)", *wxYELLOW);
+    TimeLogChart *cpuChart = new TimeLogChart(dashboardPanel, ID_CPU_CHART, wxT("CPU Status"));
+    cpuChart->SetValueAxisFormat("%.1f");
+    cpuChart->SetValueAxisScale(1.0);
+    cpuChart->AddChart("Used", wxColour(*wxGREEN));
+    cpuChart->AddChart("Peak Used", *wxRED);
 
-    vboxDashboard->Add(cpuChart, 1, wxEXPAND | wxALL, 3);
-//    vboxDashboard->Add(-1, -1, 1);
+    vboxDashboard->Add(cpuChart, 1, wxEXPAND | wxTOP | wxBOTTOM, 5);
+    vboxDashboard->Add(-1, -1, 1);
     dashboardPanel->SetSizer(vboxDashboard);
     expTabs->AddPage(dashboardPanel, wxT("Server Status"));
 
@@ -69,8 +75,8 @@ QueryPanel::QueryPanel(wxWindow *parent, RedisConnection *connection):
     wxButton *btnCommand = new wxButton(rawCommandPanel, ID_COMMAND_RAW, wxT("Execute"), wxPoint(-1,-1), wxSize(-1, 28));
     wxTextCtrl *txtCommandResult = new wxTextCtrl(rawCommandPanel, ID_TEXT_COMMAND_RESULT, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
     txtCommandResult->SetBackgroundColour(*wxBLACK);
-    txtCommandResult->SetForegroundColour(*wxGREEN);
-    txtCommandResult->SetFont(wxSystemSettings::GetFont(wxSYS_OEM_FIXED_FONT));
+    txtCommandResult->SetForegroundColour(*wxLIGHT_GREY);
+    txtCommandResult->SetFont(*m_rawCommandFont);
     txtCommandResult->SetEditable(false);
 
     wxBoxSizer *hboxCommand = new wxBoxSizer(wxHORIZONTAL);
@@ -108,33 +114,33 @@ QueryPanel::~QueryPanel()
         delete m_connection;
         m_connection = NULL;
     }
+
+    delete m_rawCommandFont;
 }
 
 void QueryPanel::OnTimer(wxTimerEvent &evt)
 {
     if (m_connection != NULL && m_connection->IsConnected())
     {
-        TimeLogChart *chart = (TimeLogChart *)FindWindow(ID_MEMORY_CHART);
-        if (chart != NULL)
+        RedisSystemStatus sysStats = m_connection->GetMemoryStatus();
+
+        TimeLogChart *memChart = (TimeLogChart *)FindWindow(ID_MEMORY_CHART);
+        if (memChart != NULL)
         {
-            RedisMemoryStatus memStats = m_connection->GetMemoryStatus();
-//            wxSafeShowMessage("TEST", wxString::Format("%f", (double)memStats.GetUsed()));
-            double v = (double)memStats.GetUsed();
-            chart->AddChartValue(0, v);
-            v = (double)memStats.GetPeak();
-            chart->AddChartValue(1, v);
+            memChart->AddChartValue(0, (double)sysStats.GetUsed());
+            memChart->AddChartValue(1, (double)sysStats.GetPeak());
+            memChart->AddChartValue(2, (double)sysStats.GetRss());
+        }
+
+        TimeLogChart *cpuChart = (TimeLogChart *)FindWindow(ID_CPU_CHART);
+        if (cpuChart != NULL)
+        {
+            cpuChart->AddChartValue(0, sysStats.GetCPUSys());
+            cpuChart->AddChartValue(1, sysStats.GetCPUUser());
         }
     }
 
 //    wxSafeShowMessage("TEST", wxString::Format("%d", rand()));
-//    TimeLogChart *chart = (TimeLogChart *)FindWindow(ID_MEMORY_CHART);
-//    if (chart != NULL)
-//    {
-//        double v = (double)rand()/100;
-//        chart->AddChartValue(0, v);
-//        v = (double)rand()/100;
-//        chart->AddChartValue(1, v);
-//    }
 }
 
 wxString QueryPanel::GetSearchText() const

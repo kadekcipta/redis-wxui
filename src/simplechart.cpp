@@ -73,6 +73,19 @@ void TimeLogChart::InitDefaults()
     m_minValue = 0.0;
     m_maxValue = 100.0;
     m_valueDivisions = 5;
+
+    m_valueAxisFormat = "%5.1f";
+    m_valueAxisScale = (double)1048576;
+}
+
+void TimeLogChart::SetValueAxisFormat(const wxString &format)
+{
+    m_valueAxisFormat = format;
+}
+
+void TimeLogChart::SetValueAxisScale(double scale)
+{
+    m_valueAxisScale = scale;
 }
 
 void TimeLogChart::AddChart(const wxString &title, const wxColour &color)
@@ -109,9 +122,9 @@ void TimeLogChart::OnSize(wxSizeEvent &evt)
     m_backgroundBounds = GetClientRect();
     m_axisBounds = GetClientRect();
     m_axisBounds.Deflate(wxSize(10, 10));
-    m_axisBounds.SetWidth(m_axisBounds.GetWidth() - 80);
+    m_axisBounds.SetWidth(m_axisBounds.GetWidth() - 50);
     m_axisBounds.SetHeight(m_axisBounds.GetHeight() -50);
-    m_axisBounds.Offset(80, 20);
+    m_axisBounds.Offset(50, 20);
 
     Refresh();
 }
@@ -123,7 +136,7 @@ int TimeLogChart::ValueToPixel(double value)
 
 void TimeLogChart::DrawLegends(wxPaintDC &dc)
 {
-    const int LEGEND_LENGTH = 20;
+    const int LEGEND_LENGTH = 10;
 
     if (m_chartCollection == NULL && m_chartCollection->GetCount() == 0)
         return;
@@ -136,11 +149,21 @@ void TimeLogChart::DrawLegends(wxPaintDC &dc)
     for (int i = 0; i < m_chartCollection->GetCount(); i++)
     {
         ChartValueList *list =  m_chartCollection->Item(i)->GetData();
-        dc.SetPen(wxPen(list->GetColour(), 3));
-        ext = dc.GetTextExtent(list->GetTitle());
+        dc.SetPen(wxPen(list->GetColour(), 5));
+
+        // draw legend with latest value
+        wxString label = list->GetTitle();
+        if (list->GetCount() > 0)
+        {
+            // get the latest value
+            double value = *list->GetLast()->GetData()/m_valueAxisScale;
+            label += " (" + wxString::Format(m_valueAxisFormat, value) + ")";
+        }
+
+        ext = dc.GetTextExtent(label);
         dc.DrawLine(dx, dy, dx + LEGEND_LENGTH, dy);
         dx += LEGEND_LENGTH + 5;
-        dc.DrawText(list->GetTitle(), dx, dy - ext.GetHeight()/2);
+        dc.DrawText(label, dx, dy - ext.GetHeight()/2);
         dx += ext.GetWidth() + 20;
     }
 }
@@ -198,7 +221,7 @@ void TimeLogChart::DrawAxis(wxPaintDC &dc)
     for (int n = 0; n < m_valueDivisions; n++)
     {
         dc.DrawLine(leftBound, dy, rightBound, dy);
-        wxString s = wxString::Format(wxT("%5.1fM"), (double)yValue/1048576);
+        wxString s = wxString::Format(m_valueAxisFormat, (double)yValue/m_valueAxisScale);
         wxSize ext = dc.GetTextExtent(s);
         dc.DrawText(s, m_axisBounds.GetLeft()-ext.GetWidth() - MARKER_OFFSET, dy - ext.GetHeight()/2);
 

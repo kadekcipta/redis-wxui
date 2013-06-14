@@ -63,23 +63,48 @@ public:
     int GetValueType() const { return m_valueType; }
 };
 
-class RedisMemoryStatus
+class RedisSystemStatus
 {
 private:
     long    m_used;
     long    m_peak;
+    long    m_rss;
+    double  m_usedCpuSys;
+    double  m_usedCpuUser;
 
 public:
-    RedisMemoryStatus()
+    RedisSystemStatus()
     {
         m_used = -1;
         m_peak = -1;
+        m_rss = -1;
     }
 
-    RedisMemoryStatus(const RedisMemoryStatus& rhs)
+    RedisSystemStatus(const RedisSystemStatus& rhs)
     {
         m_used = rhs.GetUsed();
         m_peak = rhs.GetPeak();
+        m_rss = rhs.GetRss();
+    }
+
+    void SetCPUSys(double value)
+    {
+        m_usedCpuSys = value;
+    }
+
+    double GetCPUSys()
+    {
+        return m_usedCpuSys;
+    }
+
+    void SetCPUUser(double value)
+    {
+        m_usedCpuUser = value;
+    }
+
+    double GetCPUUser()
+    {
+        return m_usedCpuUser;
     }
 
     void SetUsed(long value)
@@ -90,6 +115,16 @@ public:
     long GetUsed() const
     {
         return m_used;
+    }
+
+    void SetRss(long value)
+    {
+        m_rss = value;
+    }
+
+    long GetRss() const
+    {
+        return m_rss;
     }
 
     void SetPeak(long value)
@@ -151,7 +186,7 @@ public:
     wxString GetLastError() { return m_lastError; }
 
     wxString GetServerInfo();
-    RedisMemoryStatus GetMemoryStatus();
+    RedisSystemStatus GetMemoryStatus();
 };
 
 #endif // REDISCONNECTION_H
