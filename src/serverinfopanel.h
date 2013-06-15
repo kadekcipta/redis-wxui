@@ -19,6 +19,7 @@ class ServerInfoPanel : public wxPanel
 private:
     wxString        m_title;
     wxArrayString   m_serverInfo;
+    wxArrayString   m_selectedGroups;
     wxRect          m_bounds;
 
     void DrawInfo(wxPaintDC &dc);
@@ -27,6 +28,7 @@ public:
     virtual ~ServerInfoPanel();
 
     void UpdateInfo(const wxArrayString& serverInfo);
+    void SetSelectedGroups(const wxArrayString &selectedGroups);
 
     void OnSize(wxSizeEvent& evt);
     void OnPaint(wxPaintEvent& evt);

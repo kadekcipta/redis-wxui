@@ -27,6 +27,7 @@ enum {
     ID_TIMER,
     ID_MEMORY_CHART,
     ID_CPU_CHART,
+    ID_SERVER_INFO_GROUP_CHOICES,
     ID_SERVER_INFO
 };
 
@@ -39,6 +40,8 @@ private:
     wxFont      *m_rawCommandFont;
 
     wxListBox *GetKeyListBox() const;
+    wxArrayString GetServerInfoGroupsFromConfig();
+    void PopulateServerInfoGroups();
 
     void OnTimer(wxTimerEvent& evt);
     void OnFind(wxCommandEvent& evt);
@@ -47,6 +50,7 @@ private:
     void OnDisconnect(wxCommandEvent& evt);
     void OnKeySelected(wxCommandEvent& evt);
     void OnKeyDoubleClicked(wxCommandEvent& evt);
+    void OnGroupSelected(wxCommandEvent& evt);
 
     void IterateArrayResponse(redisReply **response, size_t length);
     void FindKeys(const wxString& keyFilter);

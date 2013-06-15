@@ -65,7 +65,7 @@ void TimeLogChart::InitDefaults()
 {
     m_chartCollection = new ChartCollection();
     m_valueFont = new wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Courier 10 Pitch"));
-    m_titleFont = new wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxT("Courier 10 Pitch"));
+    m_titleFont = new wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxT("Courier 10 Pitch"));
 
     m_logDuration = 60;
     m_logTickFrequency = 10;
@@ -204,10 +204,13 @@ void TimeLogChart::DrawAxis(wxPaintDC &dc)
         {
             dc.DrawLine(dx, topBound, dx, bottomBound);
 
-            // draw axis marker
-            wxString s = wxString::Format(wxT("%d secs"), (m_logDuration-i));
-            wxSize ext = dc.GetTextExtent(s);
-            dc.DrawText(s, dx - ext.GetWidth()/2, bottomBound + MARKER_OFFSET);
+            if (i % (m_logTickFrequency*2) == 0)
+            {
+                // draw axis marker
+                wxString s = wxString::Format(wxT("%d secs"), (m_logDuration-i));
+                wxSize ext = dc.GetTextExtent(s);
+                dc.DrawText(s, dx - ext.GetWidth()/2, bottomBound + MARKER_OFFSET);
+            }
         }
     }
 

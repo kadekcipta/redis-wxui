@@ -16,6 +16,7 @@
 #include <wx/settings.h>
 #include <wx/grid.h>
 #include <wx/numdlg.h>
+#include <wx/checklst.h>
 #include <limits.h>
 
 #include "querypanel.h"
@@ -37,7 +38,7 @@ ConnectionPanel::ConnectionPanel(wxWindow *parent, RedisConnection *connection):
     TimeLogChart *memChart = new TimeLogChart(dashboardPanel, ID_MEMORY_CHART, wxT("Memory Status"));
     memChart->SetValueAxisFormat("%.1fM");
     memChart->AddChart("Used", wxColour(*wxBLUE));
-    memChart->AddChart("Peak Used", *wxRED);
+    memChart->AddChart("Peak", *wxRED);
     memChart->AddChart("RSS", wxColour("orange"));
 
     vboxDashboard->Add(memChart, 1, wxEXPAND | wxTOP | wxBOTTOM, 5);
@@ -52,9 +53,11 @@ ConnectionPanel::ConnectionPanel(wxWindow *parent, RedisConnection *connection):
 
     wxBoxSizer *hboxDashboard = new wxBoxSizer(wxHORIZONTAL);
 
-//    hboxDashboard->Add(-1, -1, 1);
-    hboxDashboard->Add(new ServerInfoPanel(expTabs, ID_SERVER_INFO, wxT("Server Information")), 1, wxEXPAND);
     hboxDashboard->Add(vboxDashboard, 1, wxEXPAND);
+    // server info group choices
+    hboxDashboard->Add(new wxCheckListBox(dashboardPanel, ID_SERVER_INFO_GROUP_CHOICES), 0, wxEXPAND | wxALL, 3);
+    // server info
+    hboxDashboard->Add(new ServerInfoPanel(dashboardPanel, ID_SERVER_INFO, wxT("Server Information")), 1, wxEXPAND);
 
     dashboardPanel->SetSizer(hboxDashboard);
     expTabs->AddPage(dashboardPanel, wxT("Server Status"));
@@ -112,6 +115,9 @@ ConnectionPanel::ConnectionPanel(wxWindow *parent, RedisConnection *connection):
     Connect(ID_LBOX_KEYS, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, wxCommandEventHandler(ConnectionPanel::OnKeyDoubleClicked));
     Connect(ID_COMMAND_RAW, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(ConnectionPanel::OnRawCommand));
     Connect(ID_TEXT_COMMAND, wxEVT_COMMAND_TEXT_ENTER, wxKeyEventHandler(ConnectionPanel::OnEnterKey));
+    Connect(ID_SERVER_INFO_GROUP_CHOICES, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, wxCommandEventHandler(ConnectionPanel::OnGroupSelected));
+
+    PopulateServerInfoGroups();
 }
 
 ConnectionPanel::~ConnectionPanel()
@@ -123,6 +129,61 @@ ConnectionPanel::~ConnectionPanel()
     }
 
     delete m_rawCommandFont;
+}
+
+void ConnectionPanel::OnGroupSelected(wxCommandEvent &evt)
+{
+    wxCheckListBox *groups = (wxCheckListBox*)FindWindow(ID_SERVER_INFO_GROUP_CHOICES);
+    wxArrayString selectedStrings;
+    for (int i = 0; i < groups->GetCount(); i++)
+    {
+        if (groups->IsChecked((unsigned int)i))
+        {
+            selectedStrings.Add(groups->GetString(i));
+        }
+    }
+
+    ServerInfoPanel *siPanel = (ServerInfoPanel*)FindWindow(ID_SERVER_INFO);
+    if (siPanel != NULL)
+    {
+        siPanel->SetSelectedGroups(selectedStrings);
+    }
+}
+
+// This should be loaded from configuration, for time being it's just hardcoded to some arbitrary values
+wxArrayString ConnectionPanel::GetServerInfoGroupsFromConfig()
+{
+    wxArrayString selectedInfoGroups;
+    selectedInfoGroups.Add(wxT("Server"));
+    selectedInfoGroups.Add(wxT("Clients"));
+
+    return selectedInfoGroups;
+}
+
+void ConnectionPanel::PopulateServerInfoGroups()
+{
+    wxCheckListBox *groups = (wxCheckListBox*)FindWindow(ID_SERVER_INFO_GROUP_CHOICES);
+    if (m_connection != NULL && m_connection->IsConnected() && groups != NULL)
+    {
+        wxArrayString selectedInfoGroups = GetServerInfoGroupsFromConfig();
+        wxArrayString infos = m_connection->GetServerInfo();
+        for (int i = 0; i < infos.GetCount(); i++)
+        {
+            if (infos[i].StartsWith(wxT("#")))
+            {
+                wxString groupName = infos[i].SubString(2, infos[i].Length());
+                int n = groups->Append(groupName);
+                if (selectedInfoGroups.Index(groupName, false) != -1)
+                {
+                    groups->Check(n);
+                }
+            }
+        }
+
+        ServerInfoPanel *siPanel = (ServerInfoPanel*)FindWindow(ID_SERVER_INFO);
+        if (siPanel != NULL)
+            siPanel->SetSelectedGroups(selectedInfoGroups);
+    }
 }
 
 void ConnectionPanel::OnTimer(wxTimerEvent &evt)
@@ -152,8 +213,6 @@ void ConnectionPanel::OnTimer(wxTimerEvent &evt)
             siPanel->UpdateInfo(m_connection->GetServerInfo());
         }
     }
-
-//    wxSafeShowMessage("TEST", wxString::Format("%d", rand()));
 }
 
 wxString ConnectionPanel::GetSearchText() const

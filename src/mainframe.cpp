@@ -17,7 +17,7 @@
 #include "res/network.xpm"
 
 MainFrame::MainFrame(const wxString& title):
-    wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(750, 700))
+    wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(950, 600))
 {
     InitializeMenubar();
     InitializeControls();
@@ -41,8 +41,6 @@ void MainFrame::InitializeMenubar()
     m_fileMenu->Append(ID_MENU_SELECT_DB, wxT("Select Database..."), wxT("Select the database index"));
     m_fileMenu->Append(ID_MENU_DISCONNECT, wxT("Disconnect"), wxT("Close the current connection"));
     m_fileMenu->AppendSeparator();
-//    m_fileMenu->Append(ID_MENU_SETTINGS, wxT("Settings..."))->Enable(false);
-//    m_fileMenu->AppendSeparator();
     m_fileMenu->Append(wxID_EXIT, wxT("E&xit"));
 
     m_editMenu = new wxMenu();

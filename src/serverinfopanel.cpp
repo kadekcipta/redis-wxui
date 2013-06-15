@@ -32,6 +32,7 @@ void ServerInfoPanel::OnPaint(wxPaintEvent &evt)
 void ServerInfoPanel::OnSize(wxSizeEvent &evt)
 {
     m_bounds = GetClientRect();
+    m_bounds.Deflate(wxSize(3, 3));
     Refresh();
 }
 
@@ -39,34 +40,81 @@ void ServerInfoPanel::DrawInfo(wxPaintDC &dc)
 {
     int dy = m_bounds.GetTop();
     int dx = m_bounds.GetLeft();
-    wxSize ext = dc.GetTextExtent("H");
+
     wxFont infoFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Courier 10 Pitch"));
+    wxFont headingFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxT("Courier 10 Pitch"));
 
+    int n = m_serverInfo.GetCount();
+
+    // calculate the longext key extent
+    int longestExtent = 0;
+    for (int i = 0; i < n; i++)
+    {
+        wxArrayString kv = wxStringTokenize(m_serverInfo[i], ":");
+        if (kv.GetCount() == 2)
+        {
+            int w = dc.GetTextExtent(kv[0]).GetWidth();
+            if (w > longestExtent)
+                longestExtent = w;
+        }
+    }
+
+    dc.SetFont(headingFont);
+    int headingDy = dc.GetTextExtent("H").GetHeight();
     dc.SetFont(infoFont);
+    int infoDy = dc.GetTextExtent("H").GetHeight();
 
-    for (int i = 0; i < m_serverInfo.Count(); i++)
+    int cx = m_bounds.GetLeft() + longestExtent;
+
+    int i = 0;
+    while (i < n )
     {
         wxString token = m_serverInfo[i];
-        if (token.StartsWith("#"))
-            continue;
+        if (token.StartsWith(wxT("#")))
+        {
+            token = token.SubString(2, token.Length());
 
-        wxArrayString kv = wxStringTokenize(token, ":");
-        token.Replace("_", " ");
-        token.MakeCapitalized();
-        dc.DrawText(kv[0], dx, dy);
+            if (m_selectedGroups.Index(token, false) == -1)
+            {
+                while (++i < n)
+                {
+                    if (m_serverInfo[i].StartsWith(wxT("#")))
+                    {
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                dc.SetFont(headingFont);
+                dc.DrawText(token, dx, dy);
+                dy += headingDy;
+                ++i;
+            }
+        }
+        else
+        {
+            dc.SetFont(infoFont);
+            wxArrayString kv = wxStringTokenize(token, ":");
+            if (kv.GetCount() == 2)
+            {
+                wxString key = kv[0];
+                key.Replace("_", " ");
+                key.MakeCapitalized();
+                dc.DrawText(key, dx, dy);
+                dc.DrawText(kv[1], cx, dy);
+            }
 
-        dy += ext.GetHeight();
-
-//        for (int n = 0; n < N_SERVER_ATTRIBUTES; n++)
-//        {
-//            if (kv[0] == SERVER_ATTRIBUTES[n])
-//            {
-//                token.Replace("_", " ");
-//                token.MakeCapitalized();
-
-//            }
-//        }
+            dy += infoDy;
+            ++i;
+        }
     }
+}
+
+void ServerInfoPanel::SetSelectedGroups(const wxArrayString &selectedGroups)
+{
+    m_selectedGroups = selectedGroups;
+    Refresh();
 }
 
 void ServerInfoPanel::UpdateInfo(const wxArrayString &serverInfo)
