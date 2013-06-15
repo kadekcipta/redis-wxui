@@ -24,19 +24,10 @@ private:
 public:
     ChartValueList(const wxString& title, const wxColour &color):
         XValueList(), m_title(title), m_color(color)
-    {
+    {}
 
-    }
-
-    const wxString& GetTitle()
-    {
-        return m_title;
-    }
-
-    const wxColour& GetColour()
-    {
-        return m_color;
-    }
+    const wxString& GetTitle() { return m_title; }
+    const wxColour& GetColour() { return m_color; }
 };
 
 WX_DECLARE_LIST(ChartValueList, ChartCollection);
@@ -62,10 +53,7 @@ private:
     wxRect m_backgroundBounds;
 
     void InitDefaults();
-
     int ValueToPixel(double value);
-
-
 
     void DrawBackground(wxPaintDC &dc);
     void DrawAxis(wxPaintDC &dc);

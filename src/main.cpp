@@ -20,7 +20,7 @@ IMPLEMENT_APP(MyApp)
 
 bool MyApp::OnInit()
 {
-    MainFrame *f = new MainFrame(wxT("Simple Redis UI"));
+    MainFrame *f = new MainFrame(APP_TITLE);
     f->Show();
 
     return true;

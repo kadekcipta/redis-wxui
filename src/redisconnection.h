@@ -3,6 +3,10 @@
 
 #include "hiredis/hiredis.h"
 
+class wxEmptyString;
+class wxString;
+class wxArrayString;
+
 enum {
     REDIS_NONE_VALUE,
     REDIS_INT_VALUE,
@@ -87,55 +91,20 @@ public:
         m_rss = rhs.GetRss();
     }
 
-    void SetCPUSys(double value)
-    {
-        m_usedCpuSys = value;
-    }
+    void SetCPUSys(double value) { m_usedCpuSys = value; }
+    double GetCPUSys() { return m_usedCpuSys; }
 
-    double GetCPUSys()
-    {
-        return m_usedCpuSys;
-    }
+    void SetCPUUser(double value) { m_usedCpuUser = value; }
+    double GetCPUUser() { return m_usedCpuUser; }
 
-    void SetCPUUser(double value)
-    {
-        m_usedCpuUser = value;
-    }
+    void SetUsed(long value) { m_used = value; }
+    long GetUsed() const { return m_used; }
 
-    double GetCPUUser()
-    {
-        return m_usedCpuUser;
-    }
+    void SetRss(long value) { m_rss = value; }
+    long GetRss() const { return m_rss; }
 
-    void SetUsed(long value)
-    {
-        m_used = value;
-    }
-
-    long GetUsed() const
-    {
-        return m_used;
-    }
-
-    void SetRss(long value)
-    {
-        m_rss = value;
-    }
-
-    long GetRss() const
-    {
-        return m_rss;
-    }
-
-    void SetPeak(long value)
-    {
-        m_peak = value;
-    }
-
-    long GetPeak() const
-    {
-        return m_peak;
-    }
+    void SetPeak(long value) { m_peak = value; }
+    long GetPeak() const { return m_peak; }
 };
 
 class RedisConnection
@@ -145,6 +114,7 @@ private:
     wxString    m_title;
     int         m_remotePort;
     wxString    m_lastError;
+    wxString    m_authPassword;
 
     redisContext    *m_redisContext;
     wxArrayString   m_redisKeys;
@@ -154,7 +124,7 @@ private:
     wxString ArrayReplyToString(redisReply **response, size_t length, int indent=-1);
 
 public:
-    RedisConnection(const wxString& remoteHost, int remotePort=6379, const wxString& title="");
+    RedisConnection(const wxString& remoteHost, int remotePort=6379, const wxString& title=wxEmptyString, const wxString& authPassword=wxEmptyString);
     virtual ~RedisConnection();
 
     bool Connect();
@@ -172,6 +142,8 @@ public:
     RedisSimpleValue ExecuteCommand(const wxString& key);
 
     RedisSimpleValue GetValue(const wxString& key);
+
+    bool Auth();
     bool SetValue(const wxString& key, const RedisSimpleValue& value);
     bool DeleteKey(const wxString& key);
     bool SelectDb(uint db);
@@ -180,12 +152,13 @@ public:
     int FindKeys(const wxString& keyPatterns);
     wxArrayString& GetKeysResult() { return m_redisKeys; }
 
+    const wxString& GetAuthPassword() { m_authPassword; }
     const wxString& GetRemoteHost() { return m_remoteHost; }
     const wxString& GetTitle() { return m_title; }
     int GetRemotePort() { return m_remotePort; }
     wxString GetLastError() { return m_lastError; }
 
-    wxString GetServerInfo();
+    wxArrayString GetServerInfo();
     RedisSystemStatus GetMemoryStatus();
 };
 

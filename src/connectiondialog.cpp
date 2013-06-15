@@ -11,7 +11,7 @@
 #include "connectiondialog.h"
 
 ConnectionDialog::ConnectionDialog(wxWindow *parent, const wxString& title):
-    wxDialog(parent, wxID_ANY, title)
+    wxDialog(parent, wxID_ANY, title), m_remotePort(wxT("6379"))
 {
     Connect(wxEVT_INIT_DIALOG, wxInitDialogEventHandler(ConnectionDialog::OnInitDialog));
 }
@@ -19,29 +19,39 @@ ConnectionDialog::ConnectionDialog(wxWindow *parent, const wxString& title):
 void ConnectionDialog::CreateControls()
 {
     wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
+    wxFlexGridSizer *flexGrid = new wxFlexGridSizer(4, 2, 5, 5);
 
-    wxBoxSizer *hboxRemoteHost = new wxBoxSizer(wxHORIZONTAL);
-    hboxRemoteHost->Add(new wxStaticText(this, wxID_ANY, wxT("Host Name")), 2, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL);
-    wxTextCtrl *remoteHost = new wxTextCtrl(this, ID_HOSTNAME, "", wxDefaultPosition, wxSize(200, -1));
-    hboxRemoteHost->Add(remoteHost, 4, wxALIGN_LEFT );
-    vbox->Add(hboxRemoteHost, 0, wxEXPAND | wxALL & ~wxBOTTOM, 8);
+    flexGrid->Add(new wxStaticText(this, wxID_ANY, wxT("Host")), 0, wxALIGN_CENTER_VERTICAL);
+    flexGrid->Add(new wxTextCtrl(this, ID_HOSTNAME), 1, wxEXPAND);
 
-    wxBoxSizer *hboxRemotePort = new wxBoxSizer(wxHORIZONTAL);
-    hboxRemotePort->Add(new wxStaticText(this, wxID_ANY, wxT("Port")), 2, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL);
+    flexGrid->Add(new wxStaticText(this, wxID_ANY, wxT("Port")), 0, wxALIGN_CENTER_VERTICAL);
+    flexGrid->Add(new wxTextCtrl(this, ID_PORT), 1, wxEXPAND);
 
-    wxTextCtrl *remotePort = new wxTextCtrl(this, ID_PORT, "", wxDefaultPosition, wxSize(200, -1));
-    hboxRemotePort->Add(remotePort, 4, wxALIGN_LEFT );
-    vbox->Add(hboxRemotePort, 0, wxEXPAND | wxALL, 8);
+    flexGrid->AddSpacer(0);
+    flexGrid->Add(new wxStaticText(this, wxID_ANY, wxT("Left it blank if the server is not password-protected.")), 0,
+                  wxALIGN_BOTTOM | wxEXPAND | wxTOP, 30);
+
+    flexGrid->Add(new wxStaticText(this, wxID_ANY, wxT("Password")), 0, wxALIGN_CENTER_VERTICAL);
+    flexGrid->Add(new wxTextCtrl(this, ID_AUTH_PASSWORD, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD), 1, wxEXPAND);
+
+    vbox->Add(flexGrid, 1, wxEXPAND | wxALL, 8);
+    vbox->AddSpacer(20);
 
     wxBoxSizer *hboxButtons = new wxBoxSizer(wxHORIZONTAL);
-    hboxButtons->Add(new wxButton(this, wxID_OK, wxT("OK")), 0, wxRIGHT, 5);
+    wxButton *btnOK = new wxButton(this, wxID_OK, wxT("OK"));
+    btnOK->SetDefault();
+    hboxButtons->Add(btnOK, 0, wxRIGHT, 5);
     hboxButtons->Add(new wxButton(this, wxID_CANCEL, wxT("Cancel")), 0, wxBOTTOM);
     vbox->Add(hboxButtons, 0, wxALIGN_RIGHT | wxRIGHT | wxBOTTOM, 8);
 
     FindWindow(ID_HOSTNAME)->SetValidator(wxTextValidator(wxFILTER_EMPTY, &m_remoteHost));
     FindWindow(ID_PORT)->SetValidator(wxTextValidator(wxFILTER_DIGITS, &m_remotePort));
+    FindWindow(ID_AUTH_PASSWORD)->SetValidator(wxTextValidator(wxFILTER_NONE, &m_password));
+
+    flexGrid->AddGrowableCol(1, 1);
 
     SetSizer(vbox);
+    SetMinSize(wxSize(400, 150));
     GetSizer()->Fit(this);
     Center();
 }

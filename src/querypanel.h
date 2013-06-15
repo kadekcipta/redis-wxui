@@ -26,10 +26,11 @@ enum {
     ID_TEXT_COMMAND_RESULT,
     ID_TIMER,
     ID_MEMORY_CHART,
-    ID_CPU_CHART
+    ID_CPU_CHART,
+    ID_SERVER_INFO
 };
 
-class QueryPanel : public wxPanel
+class ConnectionPanel : public wxPanel
 {
 private:
     RedisConnection *m_connection;
@@ -52,8 +53,8 @@ private:
     void ExecuteCommand(const wxString& command);
 
 public:
-    QueryPanel(wxWindow *parent, RedisConnection *connection);
-    virtual ~QueryPanel();
+    ConnectionPanel(wxWindow *parent, RedisConnection *connection);
+    virtual ~ConnectionPanel();
 
     wxString GetSearchText() const;
     wxString GetSelectedKey() const;
@@ -66,8 +67,6 @@ public:
     void DeleteKey();
     void SelectDb();
     void ExpireKey();
-
-    wxString GetServerInfo() const;
 };
 
 #endif // QUERYPANEL_H

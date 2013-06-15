@@ -23,7 +23,7 @@ void SelectDbdialog::OnInitDialog(wxInitDialogEvent &event)
     wxBoxSizer *hboxRemotePort = new wxBoxSizer(wxHORIZONTAL);
 
     hboxRemotePort->Add(new wxStaticText(this, wxID_ANY, wxT("Database")), 2, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL);
-    wxTextCtrl *remotePort = new wxTextCtrl(this, ID_DB, "", wxDefaultPosition, wxSize(200, -1));
+    wxTextCtrl *remotePort = new wxTextCtrl(this, ID_DB, wxEmptyString, wxDefaultPosition, wxSize(200, -1));
     hboxRemotePort->Add(remotePort, 4, wxALIGN_LEFT );
     vbox->Add(hboxRemotePort, 0, wxEXPAND | wxALL, 8);
 

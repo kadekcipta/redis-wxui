@@ -25,31 +25,28 @@ KeyValueEditorDialog::KeyValueEditorDialog(wxWindow *parent, const wxString& tit
 void KeyValueEditorDialog::CreateControls()
 {
     wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
+    vbox->Add(new wxStaticText(this, wxID_ANY, wxT("It will overwrite the value of the existing key with the same name.")), 0, wxEXPAND | wxALL, 8);
+    wxFlexGridSizer *gridSizer = new wxFlexGridSizer(2, 2, 5, 5);
+    wxTextCtrl *txtKeyName = new wxTextCtrl(this, ID_KEY_NAME);
+    gridSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Key Name")));
+    gridSizer->Add(txtKeyName, 1, wxEXPAND);
+    wxTextCtrl *txtValue = new wxTextCtrl(this, ID_VALUE, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
+    gridSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Value")));
+    gridSizer->Add(txtValue, 1, wxEXPAND);
 
-    vbox->Add(new wxStaticText(this, wxID_ANY, wxT("It will overwrite the value of the existing key with the same name.")), 1, wxEXPAND | wxALL, 8);
-    vbox->AddSpacer(10);
+    gridSizer->AddGrowableRow(1, 1);
+    gridSizer->AddGrowableCol(1, 1);
 
-    wxBoxSizer *hboxKeyName = new wxBoxSizer(wxHORIZONTAL);
-    hboxKeyName->Add(new wxStaticText(this, wxID_ANY, wxT("Key Name")), 1, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND | wxRIGHT, 8);
-    wxTextCtrl *txtKeyName = new wxTextCtrl(this, ID_KEY_NAME, wxEmptyString, wxDefaultPosition, wxSize(500, -1));
-    hboxKeyName->Add(txtKeyName, 4, wxALIGN_LEFT );
-    vbox->Add(hboxKeyName, 0, wxEXPAND | wxALL & ~wxBOTTOM, 8);
-
-    wxBoxSizer *hboxValue = new wxBoxSizer(wxHORIZONTAL);
-    hboxValue->Add(new wxStaticText(this, wxID_ANY, wxT("Value")), 1, wxALIGN_RIGHT | wxALIGN_TOP | wxEXPAND | wxRIGHT, 8);
-    wxTextCtrl *txtValue = new wxTextCtrl(this, ID_VALUE, "", wxDefaultPosition, wxSize(-1, 250), wxTE_MULTILINE);
-    hboxValue->Add(txtValue, 4, wxALIGN_LEFT );
-    vbox->Add(hboxValue, 0, wxEXPAND | wxALL, 8);
-
-    vbox->AddSpacer(10);
+    vbox->Add(gridSizer, 1, wxEXPAND | wxALL, 8);
 
     wxBoxSizer *hboxButtons = new wxBoxSizer(wxHORIZONTAL);
-    hboxButtons->Add(new wxButton(this, wxID_OK, wxT("OK")), 0, wxRIGHT, 8);
+    wxButton *btnOK = new wxButton(this, wxID_OK, wxT("OK"));
+    btnOK->SetDefault();
+    hboxButtons->Add(btnOK, 0, wxRIGHT, 8);
     hboxButtons->Add(new wxButton(this, wxID_CANCEL, wxT("Cancel")), 0, wxBOTTOM);
     vbox->Add(hboxButtons, 0, wxALIGN_RIGHT | wxRIGHT | wxBOTTOM, 8);
-
     SetSizer(vbox);
-    GetSizer()->Fit(this);
+    SetMinSize(wxSize(500, 350));
     Center();
 }
 

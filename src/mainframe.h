@@ -3,6 +3,10 @@
 
 #include "querypanel.h"
 
+#define APP_TITLE       wxT("wxRedis Simple UI")
+#define APP_NAME        wxT("wxWidgets base simple Redis UI")
+#define APP_AUTHOR      wxT("Cipta - kadekcipta@gmail.com")
+
 class wxString;
 class wxNotebook;
 class wxUpdateUIEvent;
@@ -18,16 +22,16 @@ enum {
     ID_MAIN_TAB = 100,
     ID_MAIN_STATUS_BAR,
     ID_MAIN_TOOL_BAR,
-    ID_MENU_CONNECT,
+//    ID_MENU_CONNECT,
     ID_MENU_DISCONNECT,
-    ID_MENU_ADD_KV,
+//    ID_MENU_ADD_KV,
     ID_MENU_SELECT_DB,
     ID_MENU_QUERY,
     ID_MENU_SETTINGS,
-    ID_MENU_EDIT_KEY_VALUE,
-    ID_MENU_EXPIRE,
-    ID_MENU_DELETE,
-    ID_MENU_ABOUT
+//    ID_MENU_EDIT_KEY_VALUE,
+    ID_MENU_EXPIRE
+//    ID_MENU_DELETE,
+//    ID_MENU_ABOUT
 };
 
 class MainFrame : public wxFrame
@@ -49,10 +53,11 @@ private:
     void OnRedisConnectedUpdateUI(wxUpdateUIEvent& evt);
     void OnKeySelectedUpdateUI(wxUpdateUIEvent& evt);
 
-    QueryPanel * GetActivePanel();
+    ConnectionPanel * GetActivePanel();
 
     void OnIdle(wxIdleEvent &evt);
 
+    void OnAbout(wxCommandEvent& evt);
     void OnQuit(wxCommandEvent& evt);
     void OnClose(wxCloseEvent& evt);
     void OnAddConnection(wxCommandEvent& evt);

@@ -12,10 +12,10 @@
 #include <sys/time.h>
 #include <wx/tokenzr.h>
 
-RedisConnection::RedisConnection(const wxString& remoteHost, int remotePort, const wxString& title):
-    m_remoteHost(remoteHost), m_remotePort(remotePort), m_title(title), m_redisContext(NULL)
+RedisConnection::RedisConnection(const wxString& remoteHost, int remotePort, const wxString& title, const wxString& authPassword):
+    m_remoteHost(remoteHost), m_remotePort(remotePort), m_title(title), m_redisContext(NULL), m_authPassword(authPassword)
 {
-    if (m_title == "")
+    if (m_title == wxEmptyString)
     {
         m_title = wxString::Format(wxT("%s:%d"), m_remoteHost, m_remotePort);
     }
@@ -28,11 +28,11 @@ RedisConnection::~RedisConnection()
 
 bool RedisConnection::Connect()
 {
-    m_lastError = "";
+    m_lastError = wxEmptyString;
 
     if (!IsConnected())
     {
-        if (m_remoteHost == "")
+        if (m_remoteHost == wxEmptyString)
             return false;
 
         timeval tv = { 5, 0 };
@@ -40,7 +40,10 @@ bool RedisConnection::Connect()
         if (m_redisContext != NULL)
         {
             if (m_redisContext->err == REDIS_OK)
-                return true;
+            {
+                // authenticate connection
+                return Auth();
+            }
 
             m_lastError = m_redisContext->errstr;
         }
@@ -56,6 +59,28 @@ void RedisConnection::Disconnect()
         redisFree(m_redisContext);
         m_redisContext = NULL;
     }
+}
+
+bool RedisConnection::Auth()
+{
+    if (!IsConnected())
+        return false;
+
+    if (m_authPassword.IsEmpty())
+        return true;
+
+    redisReply *reply = (redisReply*)redisCommand(m_redisContext, "AUTH %s", m_authPassword.GetData().AsChar());
+    bool ret = reply != NULL && reply->type != REDIS_REPLY_ERROR;
+    if (reply != NULL && !ret)
+    {
+        m_lastError = reply->str;
+    }
+
+    if (reply != NULL) {
+        freeReplyObject(reply);
+    }
+
+    return ret;
 }
 
 bool RedisConnection::SelectDb(uint db)
@@ -256,9 +281,6 @@ int RedisConnection::FindKeys(const wxString& keyFilter)
     wxString _keyFilter = keyFilter;
     _keyFilter.Trim();
 
-    if (keyFilter == "")
-        _keyFilter = "*";
-
     int nKeys = 0;
     redisReply *reply = (redisReply*)redisCommand(m_redisContext, "KEYS %s", _keyFilter.GetData().AsChar());
     if (reply != NULL && reply->type == REDIS_REPLY_ARRAY)
@@ -268,21 +290,17 @@ int RedisConnection::FindKeys(const wxString& keyFilter)
         freeReplyObject(reply);
     }
 
-    GetServerInfo();
-
     return nKeys;
 }
 
 
-wxString RedisConnection::GetServerInfo()
+wxArrayString RedisConnection::GetServerInfo()
 {
-    wxString tmp;
+    wxArrayString tokens;
 
     redisReply *reply = (redisReply*)redisCommand(m_redisContext, "INFO");
     if (reply != NULL)
     {
-        wxArrayString tokens;
-
         if (reply->type == REDIS_REPLY_STRING)
         {
             tokens = wxStringTokenize(reply->str, "\r\n");
@@ -290,27 +308,26 @@ wxString RedisConnection::GetServerInfo()
 
         freeReplyObject(reply);
 
-        for (int i = 0; i < tokens.Count(); i++)
-        {
-            wxString token = tokens[i];
-            if (token.StartsWith("#"))
-                continue;
+//        for (int i = 0; i < tokens.Count(); i++)
+//        {
+//            wxString token = tokens[i];
+//            if (token.StartsWith("#"))
+//                continue;
 
-            wxArrayString kv = wxStringTokenize(token, ":");
+//            wxArrayString kv = wxStringTokenize(token, ":");
 
-            for (int n = 0; n < N_SERVER_ATTRIBUTES; n++)
-            {
-                if (kv[0] == SERVER_ATTRIBUTES[n])
-                {
-                    token.Replace("_", " ");
-                    token.MakeCapitalized();
-                    tmp.Append(token).Append(" ");
-                }
-            }
-        }
+//            for (int n = 0; n < N_SERVER_ATTRIBUTES; n++)
+//            {
+//                if (kv[0] == SERVER_ATTRIBUTES[n])
+//                {
+//                    token.Replace("_", " ");
+//                    token.MakeCapitalized();
+//                }
+//            }
+//        }
     }
 
-    return tmp;
+    return tokens;
 }
 
 RedisSystemStatus RedisConnection::GetMemoryStatus()

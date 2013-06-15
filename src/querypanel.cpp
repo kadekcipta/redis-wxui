@@ -22,8 +22,9 @@
 #include "kveditordialog.h"
 #include "selectdbdialog.h"
 #include "simplechart.h"
+#include "serverinfopanel.h"
 
-QueryPanel::QueryPanel(wxWindow *parent, RedisConnection *connection):
+ConnectionPanel::ConnectionPanel(wxWindow *parent, RedisConnection *connection):
     wxPanel(parent), m_connection(connection), m_currentDb(0)
 {
     m_rawCommandFont = new wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Courier 10 Pitch"));
@@ -44,17 +45,23 @@ QueryPanel::QueryPanel(wxWindow *parent, RedisConnection *connection):
     TimeLogChart *cpuChart = new TimeLogChart(dashboardPanel, ID_CPU_CHART, wxT("CPU Status"));
     cpuChart->SetValueAxisFormat("%.1f");
     cpuChart->SetValueAxisScale(1.0);
-    cpuChart->AddChart("Used", wxColour(*wxGREEN));
-    cpuChart->AddChart("Peak Used", *wxRED);
+    cpuChart->AddChart("Sys", wxColour(*wxGREEN));
+    cpuChart->AddChart("User", *wxRED);
 
     vboxDashboard->Add(cpuChart, 1, wxEXPAND | wxTOP | wxBOTTOM, 5);
-    vboxDashboard->Add(-1, -1, 1);
-    dashboardPanel->SetSizer(vboxDashboard);
+
+    wxBoxSizer *hboxDashboard = new wxBoxSizer(wxHORIZONTAL);
+
+//    hboxDashboard->Add(-1, -1, 1);
+    hboxDashboard->Add(new ServerInfoPanel(expTabs, ID_SERVER_INFO, wxT("Server Information")), 1, wxEXPAND);
+    hboxDashboard->Add(vboxDashboard, 1, wxEXPAND);
+
+    dashboardPanel->SetSizer(hboxDashboard);
     expTabs->AddPage(dashboardPanel, wxT("Server Status"));
 
     // keys searching
     wxPanel *keysSearchingPanel = new wxPanel(expTabs);
-    wxTextCtrl *txtKeysSearch = new wxTextCtrl(keysSearchingPanel, ID_TEXT_KEY, "", wxDefaultPosition, wxSize(-1, 28), wxTE_PROCESS_ENTER, wxDefaultValidator);
+    wxTextCtrl *txtKeysSearch = new wxTextCtrl(keysSearchingPanel, ID_TEXT_KEY, wxEmptyString, wxDefaultPosition, wxSize(-1, 28), wxTE_PROCESS_ENTER, wxDefaultValidator);
     wxButton *btnKeySearch = new wxButton(keysSearchingPanel, ID_COMMAND_FIND_KEYS, wxT("Find"), wxPoint(-1,-1), wxSize(-1, 28));
     wxListBox *lboxKeys = new wxListBox(keysSearchingPanel, ID_LBOX_KEYS, wxDefaultPosition, wxDefaultSize);
 
@@ -98,16 +105,16 @@ QueryPanel::QueryPanel(wxWindow *parent, RedisConnection *connection):
     m_timer = new wxTimer(this, ID_TIMER);
     m_timer->Start(1000);
 
-    Connect(ID_TIMER, wxEVT_TIMER, wxTimerEventHandler(QueryPanel::OnTimer));
-    Connect(ID_COMMAND_FIND_KEYS, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(QueryPanel::OnFind));
-    Connect(ID_TEXT_KEY, wxEVT_COMMAND_TEXT_ENTER, wxKeyEventHandler(QueryPanel::OnEnterKey));
-    Connect(ID_LBOX_KEYS, wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler(QueryPanel::OnKeySelected));
-    Connect(ID_LBOX_KEYS, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, wxCommandEventHandler(QueryPanel::OnKeyDoubleClicked));
-    Connect(ID_COMMAND_RAW, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(QueryPanel::OnRawCommand));
-    Connect(ID_TEXT_COMMAND, wxEVT_COMMAND_TEXT_ENTER, wxKeyEventHandler(QueryPanel::OnEnterKey));
+    Connect(ID_TIMER, wxEVT_TIMER, wxTimerEventHandler(ConnectionPanel::OnTimer));
+    Connect(ID_COMMAND_FIND_KEYS, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(ConnectionPanel::OnFind));
+    Connect(ID_TEXT_KEY, wxEVT_COMMAND_TEXT_ENTER, wxKeyEventHandler(ConnectionPanel::OnEnterKey));
+    Connect(ID_LBOX_KEYS, wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler(ConnectionPanel::OnKeySelected));
+    Connect(ID_LBOX_KEYS, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, wxCommandEventHandler(ConnectionPanel::OnKeyDoubleClicked));
+    Connect(ID_COMMAND_RAW, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(ConnectionPanel::OnRawCommand));
+    Connect(ID_TEXT_COMMAND, wxEVT_COMMAND_TEXT_ENTER, wxKeyEventHandler(ConnectionPanel::OnEnterKey));
 }
 
-QueryPanel::~QueryPanel()
+ConnectionPanel::~ConnectionPanel()
 {
     if (m_connection != NULL)
     {
@@ -118,7 +125,7 @@ QueryPanel::~QueryPanel()
     delete m_rawCommandFont;
 }
 
-void QueryPanel::OnTimer(wxTimerEvent &evt)
+void ConnectionPanel::OnTimer(wxTimerEvent &evt)
 {
     if (m_connection != NULL && m_connection->IsConnected())
     {
@@ -138,27 +145,33 @@ void QueryPanel::OnTimer(wxTimerEvent &evt)
             cpuChart->AddChartValue(0, sysStats.GetCPUSys());
             cpuChart->AddChartValue(1, sysStats.GetCPUUser());
         }
+
+        ServerInfoPanel *siPanel = (ServerInfoPanel*)FindWindow(ID_SERVER_INFO);
+        if (siPanel != NULL)
+        {
+            siPanel->UpdateInfo(m_connection->GetServerInfo());
+        }
     }
 
 //    wxSafeShowMessage("TEST", wxString::Format("%d", rand()));
 }
 
-wxString QueryPanel::GetSearchText() const
+wxString ConnectionPanel::GetSearchText() const
 {
     return ((wxTextCtrl*)FindWindow(ID_TEXT_KEY))->GetValue();
 }
 
-wxString QueryPanel::GetCommandText() const
+wxString ConnectionPanel::GetCommandText() const
 {
     return ((wxTextCtrl*)FindWindow(ID_TEXT_COMMAND))->GetValue();
 }
 
-void QueryPanel::OnKeyDoubleClicked(wxCommandEvent &evt)
+void ConnectionPanel::OnKeyDoubleClicked(wxCommandEvent &evt)
 {
     EditKeyValue();
 }
 
-wxListBox *QueryPanel::GetKeyListBox() const
+wxListBox *ConnectionPanel::GetKeyListBox() const
 {
     wxWindow *ctrl = FindWindow(ID_LBOX_KEYS);
     if (ctrl != NULL)
@@ -169,34 +182,34 @@ wxListBox *QueryPanel::GetKeyListBox() const
     return NULL;
 }
 
-void QueryPanel::OnKeySelected(wxCommandEvent &evt)
+void ConnectionPanel::OnKeySelected(wxCommandEvent &evt)
 {
     if (m_connection != NULL && m_connection->IsConnected())
     {
     }
 }
 
-wxString QueryPanel::GetSelectedKey() const
+wxString ConnectionPanel::GetSelectedKey() const
 {
     if (GetKeyListBox() != NULL)
     {
         return GetKeyListBox()->GetStringSelection();
     }
 
-    return "";
+    return wxEmptyString;
 }
 
-void QueryPanel::OnFind(wxCommandEvent& evt)
+void ConnectionPanel::OnFind(wxCommandEvent& evt)
 {
     FindKeys(GetSearchText());
 }
 
-void QueryPanel::OnRawCommand(wxCommandEvent &evt)
+void ConnectionPanel::OnRawCommand(wxCommandEvent &evt)
 {
     ExecuteCommand(GetCommandText());
 }
 
-void QueryPanel::OnEnterKey(wxKeyEvent& evt)
+void ConnectionPanel::OnEnterKey(wxKeyEvent& evt)
 {
     if (evt.GetEventObject() == FindWindow(ID_TEXT_KEY))
     {
@@ -208,12 +221,12 @@ void QueryPanel::OnEnterKey(wxKeyEvent& evt)
     }
 }
 
-void QueryPanel::OnDisconnect(wxCommandEvent& evt)
+void ConnectionPanel::OnDisconnect(wxCommandEvent& evt)
 {
     CloseConnection();
 }
 
-void QueryPanel::ExecuteCommand(const wxString &command)
+void ConnectionPanel::ExecuteCommand(const wxString &command)
 {
     if (!command.IsEmpty() && m_connection != NULL && m_connection->IsConnected())
     {
@@ -229,7 +242,7 @@ void QueryPanel::ExecuteCommand(const wxString &command)
     }
 }
 
-void QueryPanel::FindKeys(const wxString& keyFilter)
+void ConnectionPanel::FindKeys(const wxString& keyFilter)
 {
     GetKeyListBox()->Clear();
     if (m_connection)
@@ -243,7 +256,7 @@ void QueryPanel::FindKeys(const wxString& keyFilter)
     }
 }
 
-void QueryPanel::CloseConnection()
+void ConnectionPanel::CloseConnection()
 {
     if (m_timer != NULL)
     {
@@ -262,10 +275,10 @@ void QueryPanel::CloseConnection()
     }
 }
 
-void QueryPanel::EditKeyValue()
+void ConnectionPanel::EditKeyValue()
 {
     wxString key = GetSelectedKey();
-    if (key != "" && m_connection != NULL && m_connection->IsConnected())
+    if (key != wxEmptyString && m_connection != NULL && m_connection->IsConnected())
     {
         KeyValueEditorDialog dlg(this, wxT("Edit Key-Value Pair"), key, m_connection->GetValue(key));
         if (dlg.ShowModal() == wxID_OK)
@@ -275,16 +288,16 @@ void QueryPanel::EditKeyValue()
     }
 }
 
-void QueryPanel::AddKeyValue()
+void ConnectionPanel::AddKeyValue()
 {
-    KeyValueEditorDialog dlg(this, wxT("Add Key-Value Pair"), "", RedisSimpleValue(""));
+    KeyValueEditorDialog dlg(this, wxT("Add Key-Value Pair"), wxEmptyString, RedisSimpleValue(wxEmptyString));
     if (dlg.ShowModal() == wxID_OK && m_connection != NULL && m_connection->IsConnected())
     {
         m_connection->SetValue(dlg.GetKey(), dlg.GetValue());
     }
 }
 
-void QueryPanel::DeleteKey()
+void ConnectionPanel::DeleteKey()
 {
     wxMessageDialog dlg(this, wxT("Are you sure to delete key: '" + GetSelectedKey() + "'' ?"), wxT("Delete Key"), wxNO_DEFAULT | wxYES_NO | wxCANCEL | wxICON_ASTERISK);
     if (dlg.ShowModal() == wxID_YES && m_connection != NULL && m_connection->IsConnected())
@@ -300,7 +313,7 @@ void QueryPanel::DeleteKey()
     }
 }
 
-void QueryPanel::SelectDb()
+void ConnectionPanel::SelectDb()
 {
     SelectDbdialog dlg(this, wxT("Select Database"), m_currentDb);
     if (dlg.ShowModal() == wxID_OK && m_connection != NULL && m_connection->IsConnected())
@@ -314,20 +327,11 @@ void QueryPanel::SelectDb()
     }
 }
 
-void QueryPanel::ExpireKey()
+void ConnectionPanel::ExpireKey()
 {
-    wxNumberEntryDialog dlg(this, wxT(""), wxT("Please set the expiration time in seconds"), wxT("Set Key Expiration"), 10, 1, 2147483647);
+    wxNumberEntryDialog dlg(this, wxEmptyString, wxT("Please set the expiration time in seconds"), wxT("Set Key Expiration"), 10, 1, 2147483647);
     if (dlg.ShowModal() == wxID_OK && m_connection != NULL && m_connection->IsConnected())
     {
         m_connection->Expire(GetSelectedKey(), (int)dlg.GetValue());
     }
 }
-
-wxString QueryPanel::GetServerInfo() const
-{
-    if (m_connection != NULL && m_connection->IsConnected())
-        return m_connection->GetServerInfo();
-
-    return wxEmptyString;
-}
-
