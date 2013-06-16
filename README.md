@@ -13,4 +13,7 @@ Dependencies
 
 I just tested and compiled successfully on Linux (ArchLinux and CentOS)
 
-![ScreenShot](https://raw.github.com/kadekcipta/wxredisui/master/screenshots/screen1.png)
+![Screen1](https://github.com/kadekcipta/wxredisui/blob/master/screenshots/screen1.png)
+![Screen2](https://github.com/kadekcipta/wxredisui/blob/master/screenshots/screen2.png)
+![Screen3](https://github.com/kadekcipta/wxredisui/blob/master/screenshots/screen3.png)
+![Screen4](https://github.com/kadekcipta/wxredisui/blob/master/screenshots/screen4.png)
