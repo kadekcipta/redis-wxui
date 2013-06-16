@@ -36,7 +36,7 @@ ConnectionPanel::ConnectionPanel(wxWindow *parent, RedisConnection *connection):
     wxPanel *dashboardPanel = new wxPanel(expTabs);
     wxBoxSizer *vboxDashboard = new wxBoxSizer(wxVERTICAL);
     TimeLogChart *memChart = new TimeLogChart(dashboardPanel, ID_MEMORY_CHART, wxT("Memory Status"));
-    memChart->SetValueAxisFormat("%.1fM");
+    memChart->SetValueAxisFormat("%.2fM");
     memChart->AddChart("Used", wxColour(*wxBLUE));
     memChart->AddChart("Peak", *wxRED);
     memChart->AddChart("RSS", wxColour("orange"));

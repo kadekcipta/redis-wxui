@@ -29,7 +29,6 @@ RedisConnection::~RedisConnection()
 bool RedisConnection::Connect()
 {
     m_lastError = wxEmptyString;
-
     if (!IsConnected())
     {
         if (m_remoteHost == wxEmptyString)
@@ -297,34 +296,15 @@ int RedisConnection::FindKeys(const wxString& keyFilter)
 wxArrayString RedisConnection::GetServerInfo()
 {
     wxArrayString tokens;
-
     redisReply *reply = (redisReply*)redisCommand(m_redisContext, "INFO");
     if (reply != NULL)
     {
         if (reply->type == REDIS_REPLY_STRING)
         {
-            tokens = wxStringTokenize(reply->str, "\r\n");
+            tokens = wxStringTokenize(reply->str, wxT("\r\n"));
         }
 
         freeReplyObject(reply);
-
-//        for (int i = 0; i < tokens.Count(); i++)
-//        {
-//            wxString token = tokens[i];
-//            if (token.StartsWith("#"))
-//                continue;
-
-//            wxArrayString kv = wxStringTokenize(token, ":");
-
-//            for (int n = 0; n < N_SERVER_ATTRIBUTES; n++)
-//            {
-//                if (kv[0] == SERVER_ATTRIBUTES[n])
-//                {
-//                    token.Replace("_", " ");
-//                    token.MakeCapitalized();
-//                }
-//            }
-//        }
     }
 
     return tokens;
@@ -333,7 +313,6 @@ wxArrayString RedisConnection::GetServerInfo()
 RedisSystemStatus RedisConnection::GetMemoryStatus()
 {
     RedisSystemStatus status;
-
     redisReply *reply = (redisReply*)redisCommand(m_redisContext, "INFO");
     if (reply != NULL)
     {
@@ -341,7 +320,7 @@ RedisSystemStatus RedisConnection::GetMemoryStatus()
 
         if (reply->type == REDIS_REPLY_STRING)
         {
-            tokens = wxStringTokenize(reply->str, "\r\n");
+            tokens = wxStringTokenize(reply->str, wxT("\r\n"));
         }
 
         freeReplyObject(reply);
@@ -362,15 +341,15 @@ RedisSystemStatus RedisConnection::GetMemoryStatus()
                 sValue.ToLong(&lv);
                 sValue.ToDouble(&dv);
 
-                if (kv[0] == "used_memory")
+                if (kv[0] == wxT("used_memory"))
                     status.SetUsed(lv);
-                else if (kv[0] == "used_memory_peak")
+                else if (kv[0] == wxT("used_memory_peak"))
                     status.SetPeak(lv);
-                else if (kv[0] == "used_memory_rss")
+                else if (kv[0] == wxT("used_memory_rss"))
                     status.SetRss(lv);
-                else if (kv[0] == "used_cpu_sys")
+                else if (kv[0] == wxT("used_cpu_sys"))
                     status.SetCPUSys(dv);
-                else if (kv[0] == "used_cpu_user")
+                else if (kv[0] == wxT("used_cpu_user"))
                     status.SetCPUUser(dv);
             }
         }

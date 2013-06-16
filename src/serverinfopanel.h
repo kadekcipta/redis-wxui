@@ -2,6 +2,7 @@
 #define SERVERINFOPANEL_H
 
 #include "redisconnection.h"
+#define NO_DATA_SHOWING wxT("No information to display")
 
 class wxPanel;
 class wxPaintEvent;
@@ -23,6 +24,7 @@ private:
     wxRect          m_bounds;
 
     void DrawInfo(wxPaintDC &dc);
+    wxString AdjustText(const wxString &text, wxPaintDC &dc, int maxExtent);
 public:
     ServerInfoPanel(wxWindow *parent, int id, const wxString &title=wxEmptyString);
     virtual ~ServerInfoPanel();

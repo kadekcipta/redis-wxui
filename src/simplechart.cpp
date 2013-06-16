@@ -268,7 +268,6 @@ void TimeLogChart::DrawCharts(wxPaintDC &dc)
                 int yValue = ValueToPixel(*v);
                 points[n] = wxPoint(dx, m_axisBounds.GetBottom()-yValue);
                 n++;
-    //            wxSafeShowMessage("TEST", wxString::Format("%d", dx));
             }
 
             dc.DrawSpline(list->GetCount(), points);

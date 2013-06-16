@@ -22,16 +22,11 @@ enum {
     ID_MAIN_TAB = 100,
     ID_MAIN_STATUS_BAR,
     ID_MAIN_TOOL_BAR,
-//    ID_MENU_CONNECT,
     ID_MENU_DISCONNECT,
-//    ID_MENU_ADD_KV,
     ID_MENU_SELECT_DB,
     ID_MENU_QUERY,
     ID_MENU_SETTINGS,
-//    ID_MENU_EDIT_KEY_VALUE,
     ID_MENU_EXPIRE
-//    ID_MENU_DELETE,
-//    ID_MENU_ABOUT
 };
 
 class MainFrame : public wxFrame
@@ -47,15 +42,13 @@ private:
     wxMenuBar   *m_menubar;
 
 private:
+    ConnectionPanel * GetActivePanel();
+
     void InitializeMenubar();
     void InitializeControls();
 
     void OnRedisConnectedUpdateUI(wxUpdateUIEvent& evt);
     void OnKeySelectedUpdateUI(wxUpdateUIEvent& evt);
-
-    ConnectionPanel * GetActivePanel();
-
-    void OnIdle(wxIdleEvent &evt);
 
     void OnAbout(wxCommandEvent& evt);
     void OnQuit(wxCommandEvent& evt);
