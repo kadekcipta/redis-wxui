@@ -12,3 +12,5 @@ Dependencies
 - CMake (http://cmake.org)
 
 I just tested and compiled successfully on Linux (ArchLinux and CentOS)
+
+![ScreenShot](https://raw.github.com/kadekcipta/wxredisui/master/screenshots/screen1.png)
