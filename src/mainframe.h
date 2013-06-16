@@ -3,7 +3,7 @@
 
 #include "querypanel.h"
 
-#define APP_TITLE       wxT("wxRedis Simple UI")
+#define APP_TITLE       wxT("Redis Wx-UI")
 #define APP_NAME        wxT("wxWidgets base simple Redis UI")
 #define APP_AUTHOR      wxT("Cipta - kadekcipta@gmail.com")
 
