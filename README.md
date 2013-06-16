@@ -1,17 +1,17 @@
 wxRedis Simple UI
 =================
 
-A simple wxWidgets based front end for Redis server.
+A very simple wxWidgets based front end for Redis server monitoring and trivial key-value management.
 
-It's started in my free time to learn Redis, wxWidgets, CMake and C++ in the same time and I am not expert on all those topics, so you can expect bugs and inefficiencies :)
+##Dependencies
 
-Dependencies
-------------
 - Hiredis (https://github.com/redis/hiredis)
-- wxWidgets (http://wxwidgets.org), I used the version 2.9.4
-- CMake (http://cmake.org)
+- wxWidgets (http://wxwidgets.org), tested with version 2.9.4
+- CMake (http://cmake.org), tested with version 2.8
 
-I just tested and compiled successfully on Linux (ArchLinux and CentOS)
+Currently only tested and compiled on Linux
+
+##Screenshots
 
 ![Screen1](https://raw.github.com/kadekcipta/wxredisui/master/screenshots/screen1.png)
 ![Screen2](https://raw.github.com/kadekcipta/wxredisui/master/screenshots/screen2.png)
