@@ -1,4 +1,4 @@
-wxRedis Simple UI
+Redis Wx-UI
 =================
 
 A very simple wxWidgets based front end for Redis server monitoring and trivial key-value management.
