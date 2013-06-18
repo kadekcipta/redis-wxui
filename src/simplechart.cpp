@@ -64,8 +64,8 @@ void TimeLogChart::AdjustMaxValueAxis()
 void TimeLogChart::InitDefaults()
 {
     m_chartCollection = new ChartCollection();
-    m_valueFont = new wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Courier 10 Pitch"));
-    m_titleFont = new wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxT("Courier 10 Pitch"));
+    m_valueFont = new wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false);
+    m_titleFont = new wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false);
 
     m_logDuration = 60;
     m_logTickFrequency = 10;
