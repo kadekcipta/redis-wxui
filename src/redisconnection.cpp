@@ -127,6 +127,7 @@ RedisSimpleValue RedisConnection::ExecuteCommand(const wxString& command)
         return RedisSimpleValue();
 
     wxString _command(command);
+    // disable the MONITOR command for this time, just return empty value
     if (_command.Trim(false).Upper().StartsWith("MONITOR"))
         return RedisSimpleValue();
 

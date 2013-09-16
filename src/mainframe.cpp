@@ -192,7 +192,7 @@ void MainFrame::OnCloseConnection(wxCommandEvent &evt)
 
 void MainFrame::OnAbout(wxCommandEvent &evt)
 {
-    wxMessageBox(wxString::Format(wxT("%s\n\n%s"), APP_NAME, APP_AUTHOR), wxT("About"));
+    wxMessageBox(wxString::Format(wxT("%s\n"), APP_NAME), wxT("About"));
 }
 
 void MainFrame::OnQuit(wxCommandEvent& evt)
