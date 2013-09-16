@@ -6,7 +6,7 @@ A very simple wxWidgets based front end for Redis server monitoring and trivial 
 ##Dependencies
 
 - Hiredis (https://github.com/redis/hiredis)
-- wxWidgets (http://wxwidgets.org), tested with version 2.9.4
+- wxWidgets (http://wxwidgets.org), tested with version 2.9.5
 - CMake (http://cmake.org), tested with version 2.8
 
 Currently only tested and compiled on Linux
