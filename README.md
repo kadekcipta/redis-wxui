@@ -13,7 +13,7 @@ Currently only tested and compiled on Linux
 
 ##Screenshots
 
-![Screen1](https://raw.github.com/kadekcipta/wxredisui/master/screenshots/screen1.png)
-![Screen2](https://raw.github.com/kadekcipta/wxredisui/master/screenshots/screen2.png)
-![Screen3](https://raw.github.com/kadekcipta/wxredisui/master/screenshots/screen3.png)
-![Screen4](https://raw.github.com/kadekcipta/wxredisui/master/screenshots/screen4.png)
+![Screen1](https://raw.github.com/kadekcipta/redis-wxui/master/screenshots/screen1.png)
+![Screen2](https://raw.github.com/kadekcipta/redis-wxui/master/screenshots/screen2.png)
+![Screen3](https://raw.github.com/kadekcipta/redis-wxui/master/screenshots/screen3.png)
+![Screen4](https://raw.github.com/kadekcipta/redis-wxui/master/screenshots/screen4.png)
