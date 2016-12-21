@@ -17,7 +17,8 @@
 #include "res/network.xpm"
 
 MainFrame::MainFrame(const wxString& title):
-    wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(950, 600))
+    wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(950, 600)),
+    m_mainTab(NULL)
 {
     InitializeMenubar();
     InitializeControls();
@@ -84,6 +85,7 @@ void MainFrame::InitializeMenubar()
     Connect(ID_MENU_SELECT_DB, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::OnSelectDb));
 
     Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(MainFrame::OnClose));
+    Connect(wxEVT_SIZE, wxSizeEventHandler(MainFrame::OnSize));
 
     Connect(wxID_NEW, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrame::OnRedisConnectedUpdateUI));
     Connect(ID_MENU_SELECT_DB, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrame::OnRedisConnectedUpdateUI));
@@ -204,7 +206,6 @@ void MainFrame::OnClose(wxCloseEvent &evt)
 {
     if (m_mainTab != NULL && m_mainTab->GetPageCount() > 0)
     {
-
         wxMessageDialog *dial = new wxMessageDialog(NULL, wxT("Close all the active connections and quit?"), wxT("Question"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
 
         int ret = dial->ShowModal();
@@ -222,4 +223,9 @@ void MainFrame::OnClose(wxCloseEvent &evt)
     {
         Destroy();
     }
+}
+
+void MainFrame::OnSize(wxSizeEvent &evt)
+{
+    wxFrame::OnSize(evt);
 }

@@ -61,7 +61,7 @@ void ServerInfoPanel::DrawInfo(wxPaintDC &dc)
     int dx = m_bounds.GetLeft();
 
     wxFont infoFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false);
-    wxFont headingFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false);
+    wxFont headingFont(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false);
 
     int n = m_serverInfo.GetCount();
 
@@ -120,6 +120,8 @@ void ServerInfoPanel::DrawInfo(wxPaintDC &dc)
                 if (dy < bottomLimit)
                 {
                     dc.SetFont(headingFont);
+                    if (i > 0) dy += headingDy;
+
                     dc.DrawText(token, dx, dy);
                     dy += headingDy;
                 }

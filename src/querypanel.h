@@ -1,6 +1,8 @@
 #ifndef QUERYPANEL_H
 #define QUERYPANEL_H
 
+#include <wx/bookctrl.h>
+
 #include "redisconnection.h"
 
 class wxDialog;
@@ -13,6 +15,7 @@ class wxNotebook;
 class wxTimerEvent;
 class wxTimer;
 class wxFont;
+class wxOnSizeEvent;
 
 enum {
     ID_COMMAND_FIND_KEYS = 200,
@@ -38,6 +41,7 @@ private:
     uint         m_currentDb;
     wxTimer     *m_timer;
     wxFont      *m_rawCommandFont;
+    wxBookCtrlBase *m_notebook;
 
     wxListBox *GetKeyListBox() const;
     wxArrayString GetServerInfoGroupsFromConfig();
@@ -51,6 +55,7 @@ private:
     void OnKeySelected(wxCommandEvent& evt);
     void OnKeyDoubleClicked(wxCommandEvent& evt);
     void OnGroupSelected(wxCommandEvent& evt);
+    void OnSize(wxSizeEvent& evt);
 
     void IterateArrayResponse(redisReply **response, size_t length);
     void FindKeys(const wxString& keyFilter);

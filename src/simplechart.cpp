@@ -183,7 +183,7 @@ void TimeLogChart::DrawAxis(wxPaintDC &dc)
     const int MARKER_OFFSET = 5;
 
     dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(*wxWHITE_BRUSH);
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
     dc.DrawRectangle(m_axisBounds);
     dc.SetPen(wxPen(wxColour(*wxBLACK), 1, wxPENSTYLE_DOT));
 

@@ -28,12 +28,13 @@
 ConnectionPanel::ConnectionPanel(wxWindow *parent, RedisConnection *connection):
     wxPanel(parent), m_connection(connection), m_currentDb(0)
 {
-    m_rawCommandFont = new wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Courier 10 Pitch"));
+    SetBackgroundColour(*wxRED);
 
-    wxNotebook *expTabs = new wxNotebook(this, ID_TAB_EXPLORE);
+    m_rawCommandFont = new wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Courier 10 Pitch"));
+    m_notebook = new wxNotebook(this, ID_TAB_EXPLORE, wxDefaultPosition, wxDefaultSize, wxNB_LEFT);
 
     // dashboard
-    wxPanel *dashboardPanel = new wxPanel(expTabs);
+    wxPanel *dashboardPanel = new wxPanel(m_notebook);
     wxBoxSizer *vboxDashboard = new wxBoxSizer(wxVERTICAL);
     TimeLogChart *memChart = new TimeLogChart(dashboardPanel, ID_MEMORY_CHART, wxT("Memory Status"));
     memChart->SetValueAxisFormat("%.2fM");
@@ -60,10 +61,10 @@ ConnectionPanel::ConnectionPanel(wxWindow *parent, RedisConnection *connection):
     hboxDashboard->Add(new ServerInfoPanel(dashboardPanel, ID_SERVER_INFO, wxT("Server Information")), 1, wxEXPAND);
 
     dashboardPanel->SetSizer(hboxDashboard);
-    expTabs->AddPage(dashboardPanel, wxT("Server Status"));
+    m_notebook->AddPage(dashboardPanel, wxT("Server Status"));
 
     // keys searching
-    wxPanel *keysSearchingPanel = new wxPanel(expTabs);
+    wxPanel *keysSearchingPanel = new wxPanel(m_notebook);
     wxTextCtrl *txtKeysSearch = new wxTextCtrl(keysSearchingPanel, ID_TEXT_KEY, wxEmptyString, wxDefaultPosition, wxSize(-1, 28), wxTE_PROCESS_ENTER, wxDefaultValidator);
     wxButton *btnKeySearch = new wxButton(keysSearchingPanel, ID_COMMAND_FIND_KEYS, wxT("Find"), wxPoint(-1,-1), wxSize(-1, 28));
     wxListBox *lboxKeys = new wxListBox(keysSearchingPanel, ID_LBOX_KEYS, wxDefaultPosition, wxDefaultSize);
@@ -77,10 +78,10 @@ ConnectionPanel::ConnectionPanel(wxWindow *parent, RedisConnection *connection):
     vboxKeysSearch->Add(lboxKeys, 1, wxEXPAND | wxALL & ~wxTOP, 3);
 
     keysSearchingPanel->SetSizer(vboxKeysSearch);
-    expTabs->AddPage(keysSearchingPanel, wxT("Find Keys"));
+    m_notebook->AddPage(keysSearchingPanel, wxT("Find Keys"));
 
     // raw commands
-    wxPanel *rawCommandPanel = new wxPanel(expTabs);
+    wxPanel *rawCommandPanel = new wxPanel(m_notebook);
     wxTextCtrl *txtCommand = new wxTextCtrl(rawCommandPanel, ID_TEXT_COMMAND, wxEmptyString, wxDefaultPosition, wxSize(-1, 28), wxTE_PROCESS_ENTER, wxDefaultValidator);
     wxButton *btnCommand = new wxButton(rawCommandPanel, ID_COMMAND_RAW, wxT("Execute"), wxPoint(-1,-1), wxSize(-1, 28));
     wxTextCtrl *txtCommandResult = new wxTextCtrl(rawCommandPanel, ID_TEXT_COMMAND_RESULT, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
@@ -98,11 +99,10 @@ ConnectionPanel::ConnectionPanel(wxWindow *parent, RedisConnection *connection):
     vboxCommand->Add(txtCommandResult, 1, wxEXPAND | wxALL & ~wxTOP, 3);
 
     rawCommandPanel->SetSizer(vboxCommand);
-    expTabs->AddPage(rawCommandPanel, wxT("Raw Commands"));
+    m_notebook->AddPage(rawCommandPanel, wxT("Raw Commands"));
 
-    wxBoxSizer *hboxMain = new wxBoxSizer(wxHORIZONTAL);
-    hboxMain->Add(expTabs, 1, wxEXPAND | wxALL, 3);
-
+    wxGridSizer *hboxMain = new wxGridSizer(1);
+    hboxMain->Add(m_notebook, 1, wxEXPAND);
     SetSizer(hboxMain);
 
     m_timer = new wxTimer(this, ID_TIMER);
@@ -115,6 +115,7 @@ ConnectionPanel::ConnectionPanel(wxWindow *parent, RedisConnection *connection):
     Connect(ID_LBOX_KEYS, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, wxCommandEventHandler(ConnectionPanel::OnKeyDoubleClicked));
     Connect(ID_COMMAND_RAW, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(ConnectionPanel::OnRawCommand));
     Connect(ID_TEXT_COMMAND, wxEVT_COMMAND_TEXT_ENTER, wxKeyEventHandler(ConnectionPanel::OnEnterKey));
+    Connect(wxEVT_SIZE, wxSizeEventHandler(ConnectionPanel::OnSize));
     Connect(ID_SERVER_INFO_GROUP_CHOICES, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, wxCommandEventHandler(ConnectionPanel::OnGroupSelected));
 
     PopulateServerInfoGroups();
@@ -129,6 +130,12 @@ ConnectionPanel::~ConnectionPanel()
     }
 
     delete m_rawCommandFont;
+}
+
+void ConnectionPanel::OnSize(wxSizeEvent &evt)
+{
+//    wxLogMessage("OnSize(): %d %d", evt.GetSize().GetWidth(), evt.GetSize().GetHeight());
+    Layout();
 }
 
 void ConnectionPanel::OnGroupSelected(wxCommandEvent &evt)

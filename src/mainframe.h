@@ -16,6 +16,7 @@ class wxFrame;
 class wxMenu;
 class wxStatusBar;
 class wxMenuBar;
+class wxSizeEvent;
 
 enum {
     ID_MAIN_TAB = 100,
@@ -52,6 +53,7 @@ private:
     void OnAbout(wxCommandEvent& evt);
     void OnQuit(wxCommandEvent& evt);
     void OnClose(wxCloseEvent& evt);
+    void OnSize(wxSizeEvent& evt);
     void OnAddConnection(wxCommandEvent& evt);
     void OnCloseConnection(wxCommandEvent& evt);
     void OnAddKeyValuePair(wxCommandEvent& evt);
