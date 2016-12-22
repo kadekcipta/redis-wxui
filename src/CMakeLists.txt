@@ -5,7 +5,7 @@ set(HIREDIS_STATIC_LIB libhiredis.a)
 
 file(GLOB SRC_LIST *.cpp)
 add_executable(${PROJECT_NAME} ${SRC_LIST})
-find_package(wxWidgets REQUIRED)
+find_package(wxWidgets COMPONENTS core base aui REQUIRED)
 if (wxWidgets_FOUND)
     include(${wxWidgets_USE_FILE})
     target_link_libraries(${PROJECT_NAME} ${wxWidgets_LIBRARIES} ${HIREDIS_STATIC_LIB})

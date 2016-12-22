@@ -8,6 +8,8 @@
     #include <wx/wx.h>
 #endif
 
+#include <wx/settings.h>
+#include <wx/aui/auibook.h>
 #include <wx/notebook.h>
 #include "mainframe.h"
 #include "querypanel.h"
@@ -16,9 +18,9 @@
 #include "simplechart.h"
 #include "res/network.xpm"
 
-MainFrame::MainFrame(const wxString& title):
-    wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(950, 600)),
-    m_mainTab(NULL)
+MainFrame::MainFrame(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style):
+      wxFrame(parent, id, title, pos, size, style),
+      m_mainTab(nullptr)
 {
     InitializeMenubar();
     InitializeControls();
@@ -28,7 +30,23 @@ MainFrame::MainFrame(const wxString& title):
 
 void MainFrame::InitializeControls()
 {
-    m_mainTab = new wxNotebook(this, ID_MAIN_TAB, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM);
+
+    m_mainTab = new wxAuiNotebook(
+                this,
+                wxID_ANY,
+                wxDefaultPosition,
+                wxDefaultSize,
+                wxAUI_NB_BOTTOM | wxAUI_NB_TAB_MOVE);
+
+
+    auto tabArtProvider = new wxAuiSimpleTabArt;
+    tabArtProvider->SetColour(wxSystemSettings::GetColour(wxSYS_COLOUR_MENUHILIGHT));
+    ((wxAuiNotebook*)m_mainTab)->SetArtProvider(tabArtProvider);
+
+    wxBoxSizer *sizerMain = new wxBoxSizer(wxVERTICAL);
+    sizerMain->Add(m_mainTab, 1, wxBOTTOM | wxEXPAND, 0);
+    SetSizer(sizerMain);
+    Layout();
 }
 
 void MainFrame::InitializeMenubar()
@@ -84,9 +102,7 @@ void MainFrame::InitializeMenubar()
     Connect(ID_MENU_EXPIRE, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::OnExpireKey));
     Connect(ID_MENU_SELECT_DB, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrame::OnSelectDb));
 
-    Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(MainFrame::OnClose));
-    Connect(wxEVT_SIZE, wxSizeEventHandler(MainFrame::OnSize));
-
+    Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
     Connect(wxID_NEW, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrame::OnRedisConnectedUpdateUI));
     Connect(ID_MENU_SELECT_DB, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrame::OnRedisConnectedUpdateUI));
     Connect(ID_MENU_DISCONNECT, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrame::OnRedisConnectedUpdateUI));
@@ -162,6 +178,7 @@ void MainFrame::AddConnection()
     ConnectionDialog dlg(this, wxT("Add Connection"));
     if (dlg.ShowModal() == wxID_OK)
     {
+
         RedisConnection *connection = new RedisConnection(dlg.GetRemoteHostName(), dlg.GetRemotePort(), wxEmptyString, dlg.GetPassword());
         if (connection->Connect())
         {
@@ -223,9 +240,4 @@ void MainFrame::OnClose(wxCloseEvent &evt)
     {
         Destroy();
     }
-}
-
-void MainFrame::OnSize(wxSizeEvent &evt)
-{
-    wxFrame::OnSize(evt);
 }

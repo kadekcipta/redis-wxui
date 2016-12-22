@@ -3,8 +3,8 @@
 
 #include "querypanel.h"
 
-#define APP_TITLE       wxT("Redis Wx-UI")
-#define APP_NAME        wxT("wxWidgets base simple Redis UI")
+#define APP_TITLE       wxT("Redis Monitor")
+#define APP_NAME        wxT("Simple Redis Monitor")
 
 class wxString;
 class wxNotebook;
@@ -32,7 +32,7 @@ enum {
 class MainFrame : public wxFrame
 {
 private:
-    wxNotebook *m_mainTab;
+    wxBookCtrlBase *m_mainTab;
     wxStatusBar *m_statusBar;
 
     wxMenu  *m_fileMenu;
@@ -53,7 +53,6 @@ private:
     void OnAbout(wxCommandEvent& evt);
     void OnQuit(wxCommandEvent& evt);
     void OnClose(wxCloseEvent& evt);
-    void OnSize(wxSizeEvent& evt);
     void OnAddConnection(wxCommandEvent& evt);
     void OnCloseConnection(wxCommandEvent& evt);
     void OnAddKeyValuePair(wxCommandEvent& evt);
@@ -65,7 +64,7 @@ private:
     void AddConnection();
 
 public:
-    MainFrame(const wxString& title);
+    MainFrame(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos=wxDefaultPosition, const wxSize& size=wxDefaultSize, long style=wxDEFAULT_FRAME_STYLE);
 };
 
 #endif // SIMPLE_H

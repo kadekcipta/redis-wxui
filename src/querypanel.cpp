@@ -9,6 +9,7 @@
 #endif
 
 #include <wx/wx.h>
+#include <wx/aui/auibook.h>
 #include <wx/stc/stc.h>
 #include <wx/notebook.h>
 #include <wx/listbook.h>
@@ -28,10 +29,15 @@
 ConnectionPanel::ConnectionPanel(wxWindow *parent, RedisConnection *connection):
     wxPanel(parent), m_connection(connection), m_currentDb(0)
 {
-    SetBackgroundColour(*wxRED);
-
     m_rawCommandFont = new wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Courier 10 Pitch"));
-    m_notebook = new wxNotebook(this, ID_TAB_EXPLORE, wxDefaultPosition, wxDefaultSize, wxNB_LEFT);
+    m_notebook = new wxAuiNotebook(
+                this,
+                ID_TAB_EXPLORE,
+                wxDefaultPosition,
+                wxDefaultSize,
+                wxAUI_NB_LEFT);
+
+    ((wxAuiNotebook*)m_notebook)->SetArtProvider(new wxAuiSimpleTabArt);
 
     // dashboard
     wxPanel *dashboardPanel = new wxPanel(m_notebook);
@@ -101,9 +107,10 @@ ConnectionPanel::ConnectionPanel(wxWindow *parent, RedisConnection *connection):
     rawCommandPanel->SetSizer(vboxCommand);
     m_notebook->AddPage(rawCommandPanel, wxT("Raw Commands"));
 
-    wxGridSizer *hboxMain = new wxGridSizer(1);
-    hboxMain->Add(m_notebook, 1, wxEXPAND);
-    SetSizer(hboxMain);
+    wxBoxSizer *sizerMain = new wxBoxSizer(wxHORIZONTAL);
+    sizerMain->Add(m_notebook, 1, wxEXPAND | wxALL, 5);
+    SetSizer(sizerMain);
+    Layout();
 
     m_timer = new wxTimer(this, ID_TIMER);
     m_timer->Start(1000);
@@ -115,7 +122,7 @@ ConnectionPanel::ConnectionPanel(wxWindow *parent, RedisConnection *connection):
     Connect(ID_LBOX_KEYS, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, wxCommandEventHandler(ConnectionPanel::OnKeyDoubleClicked));
     Connect(ID_COMMAND_RAW, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(ConnectionPanel::OnRawCommand));
     Connect(ID_TEXT_COMMAND, wxEVT_COMMAND_TEXT_ENTER, wxKeyEventHandler(ConnectionPanel::OnEnterKey));
-    Connect(wxEVT_SIZE, wxSizeEventHandler(ConnectionPanel::OnSize));
+//    Bind(wxEVT_SIZE, &ConnectionPanel::OnSize, this);
     Connect(ID_SERVER_INFO_GROUP_CHOICES, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, wxCommandEventHandler(ConnectionPanel::OnGroupSelected));
 
     PopulateServerInfoGroups();
@@ -135,7 +142,13 @@ ConnectionPanel::~ConnectionPanel()
 void ConnectionPanel::OnSize(wxSizeEvent &evt)
 {
 //    wxLogMessage("OnSize(): %d %d", evt.GetSize().GetWidth(), evt.GetSize().GetHeight());
+
     Layout();
+
+    if (m_notebook) {
+//        m_notebook->InvalidateBestSize();
+//        m_notebook->Layout();
+    }
 }
 
 void ConnectionPanel::OnGroupSelected(wxCommandEvent &evt)
