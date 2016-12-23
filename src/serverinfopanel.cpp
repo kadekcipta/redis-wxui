@@ -9,18 +9,26 @@
 #endif
 
 #include <wx/tokenzr.h>
+#include <wx/scrolbar.h>
 #include "serverinfopanel.h"
 
 ServerInfoPanel::ServerInfoPanel(wxWindow *parent, int id, const wxString &title):
     wxPanel(parent, id), m_title(title)
 {
     SetDoubleBuffered(true);
+
     Connect(wxEVT_PAINT, wxPaintEventHandler(ServerInfoPanel::OnPaint));
     Connect(wxEVT_SIZE, wxSizeEventHandler(ServerInfoPanel::OnSize));
 }
 
 ServerInfoPanel::~ServerInfoPanel()
 {
+}
+
+void ServerInfoPanel::SetStatusInfo(const wxString &status)
+{
+    m_status = status;
+    Refresh();
 }
 
 void ServerInfoPanel::OnPaint(wxPaintEvent &evt)
@@ -63,9 +71,8 @@ void ServerInfoPanel::DrawInfo(wxPaintDC &dc)
     wxFont infoFont = wxSystemSettings::GetFont(wxSYS_ANSI_FIXED_FONT);
     wxFont headingFont = wxSystemSettings::GetFont(wxSYS_ANSI_FIXED_FONT);
     headingFont.SetWeight(wxFONTWEIGHT_BOLD);
+    headingFont.SetUnderlined(true);
     headingFont.SetPointSize(12);
-//    wxFont infoFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false);
-//    wxFont headingFont(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false);
 
     int n = m_serverInfo.GetCount();
 
@@ -91,11 +98,13 @@ void ServerInfoPanel::DrawInfo(wxPaintDC &dc)
     int cx = m_bounds.GetLeft() + longestExtent;
     int maxValueAvailableSpace = m_bounds.GetRight() - cx;
 
-    if (m_selectedGroups.GetCount() == 0)
+    if (m_selectedGroups.GetCount() == 0 || !m_status.IsEmpty())
     {
-        dx = m_bounds.GetLeft() + (m_bounds.GetWidth() - dc.GetTextExtent(NO_DATA_SHOWING).GetWidth())/2;
+        auto status = m_status.IsEmpty() ? NO_DATA_SHOWING: m_status;
+
+        dx = m_bounds.GetLeft() + (m_bounds.GetWidth() - dc.GetTextExtent(status).GetWidth())/2;
         dy = m_bounds.GetTop() + (m_bounds.GetHeight() - infoDy)/2;
-        dc.DrawText(AdjustText(NO_DATA_SHOWING, dc, m_bounds.GetWidth()), dx, dy);
+        dc.DrawText(AdjustText(status, dc, m_bounds.GetWidth()), dx, dy);
 
         return;
     }

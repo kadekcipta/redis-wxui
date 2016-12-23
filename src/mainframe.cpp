@@ -36,7 +36,7 @@ void MainFrame::InitializeControls()
                 wxID_ANY,
                 wxDefaultPosition,
                 wxDefaultSize,
-                wxAUI_NB_BOTTOM | wxAUI_NB_TAB_MOVE);
+                wxAUI_NB_BOTTOM | wxAUI_NB_TAB_MOVE | wxAUI_NB_CLOSE_ON_ALL_TABS);
 
 
     auto tabArtProvider = new wxAuiSimpleTabArt;
@@ -178,21 +178,11 @@ void MainFrame::AddConnection()
     ConnectionDialog dlg(this, wxT("Add Connection"));
     if (dlg.ShowModal() == wxID_OK)
     {
-
-        RedisConnection *connection = new RedisConnection(dlg.GetRemoteHostName(), dlg.GetRemotePort(), wxEmptyString, dlg.GetPassword());
-        if (connection->Connect())
-        {
-            // query panel will take connection ownership
-            ConnectionPanel *qpanel = new ConnectionPanel(m_mainTab, connection);
-            m_mainTab->AddPage(qpanel, connection->GetTitle());
-        }
-        else
-        {
-            wxString message = connection->GetLastError();
-            delete connection;
-
-            wxMessageBox(message);
-        }
+        ConnectionPanel *qpanel = new ConnectionPanel(m_mainTab,
+                                                      dlg.GetRemoteHostName(),
+                                                      dlg.GetRemotePort(),
+                                                      dlg.GetPassword());
+        m_mainTab->AddPage(qpanel, dlg.GetRemoteHostName(), true);
     }
 }
 
@@ -205,7 +195,12 @@ void MainFrame::OnCloseConnection(wxCommandEvent &evt)
 {
     if (GetActivePanel() != NULL)
     {
-        GetActivePanel()->CloseConnection();
+        for (size_t i = 0; i < m_mainTab->GetPageCount(); i++) {
+            if (m_mainTab->GetCurrentPage() == m_mainTab->GetPage(i)) {
+                m_mainTab->DeletePage(i);
+                break;
+            }
+        }
     }
 }
 

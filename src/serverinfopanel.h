@@ -1,6 +1,7 @@
 #ifndef SERVERINFOPANEL_H
 #define SERVERINFOPANEL_H
 
+#include <wx/vscroll.h>
 #include "redisconnection.h"
 #define NO_DATA_SHOWING wxT("No information to display")
 
@@ -19,6 +20,7 @@ class ServerInfoPanel : public wxPanel
 {
 private:
     wxString        m_title;
+    wxString        m_status;
     wxArrayString   m_serverInfo;
     wxArrayString   m_selectedGroups;
     wxRect          m_bounds;
@@ -29,6 +31,7 @@ public:
     ServerInfoPanel(wxWindow *parent, int id, const wxString &title=wxEmptyString);
     virtual ~ServerInfoPanel();
 
+    void SetStatusInfo(const wxString&);
     void UpdateInfo(const wxArrayString& serverInfo);
     void SetSelectedGroups(const wxArrayString &selectedGroups);
 

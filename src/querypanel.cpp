@@ -26,8 +26,82 @@
 #include "simplechart.h"
 #include "serverinfopanel.h"
 
-ConnectionPanel::ConnectionPanel(wxWindow *parent, RedisConnection *connection):
-    wxPanel(parent), m_connection(connection), m_currentDb(0)
+wxDEFINE_EVENT(wxEVT_MONITOR_SYSTEM_STATS, wxThreadEvent);
+wxDEFINE_EVENT(wxEVT_MONITOR_SERVER_INFO, wxThreadEvent);
+wxDEFINE_EVENT(wxEVT_MONITOR_CONNECTED, wxThreadEvent);
+wxDEFINE_EVENT(wxEVT_MONITOR_ERROR, wxThreadEvent);
+
+MonitorThread::MonitorThread(ConnectionPanel *handler, const wxString& host, int port, const wxString& passwd):
+    wxThread(wxTHREAD_DETACHED),
+    m_handler(handler)
+{
+    m_connection = new RedisConnection(host, port, wxEmptyString, passwd);
+}
+
+MonitorThread::~MonitorThread()
+{
+    wxMessageOutputDebug().Printf("~MonitorThread()");
+
+    wxCriticalSectionLocker enter(m_handler->m_csection);
+    m_handler->m_monitorThread = NULL;
+    if (m_connection) {
+        delete m_connection;
+        m_connection = NULL;
+    }
+}
+
+wxThread::ExitCode MonitorThread::Entry()
+{
+    wxMessageOutputDebug().Printf("MonitorThread::Entry()");
+    wxMessageOutputDebug().Printf("Connecting to %s:%d", m_connection->GetRemoteHost(), m_connection->GetRemotePort());
+
+    if (!m_connection->Connect()) {
+        // report error
+        auto evtError = new wxThreadEvent(wxEVT_MONITOR_ERROR);
+        evtError->SetString(m_connection->GetLastError());
+        wxQueueEvent(m_handler, evtError);
+
+        return (wxThread::ExitCode)-1;
+    }
+
+    // connected
+    auto evtConnected = new wxThreadEvent(wxEVT_MONITOR_CONNECTED);
+    evtConnected->SetPayload(m_connection->GetServerInfo());
+    wxQueueEvent(m_handler, evtConnected);
+
+    while (!TestDestroy()) {
+        if (m_connection != NULL && m_connection->IsConnected())
+        {
+            // system stats event
+            auto eventSystemStats = new wxThreadEvent(wxEVT_MONITOR_SYSTEM_STATS);
+            eventSystemStats->SetPayload(m_connection->GetMemoryStatus());
+            wxQueueEvent(m_handler, eventSystemStats);
+
+            // server info stats
+            auto eventServerInfo = new wxThreadEvent(wxEVT_MONITOR_SERVER_INFO);
+            eventServerInfo->SetPayload(m_connection->GetServerInfo());
+            wxQueueEvent(m_handler, eventServerInfo);
+
+        } else break;
+
+        wxThread::Sleep(1000);
+    }
+
+    return (wxThread::ExitCode)0;
+}
+
+ConnectionPanel::ConnectionPanel(wxWindow *parent,
+                                 const wxString &host,
+                                 int port,
+                                 const wxString &passwd):
+    wxPanel(parent),
+    m_redisHost(host),
+    m_redisPort(port),
+    m_redisPassword(passwd),
+    m_currentDb(0),
+    m_monitorThread(0),
+    m_connection(0)
+
 {
     m_rawCommandFont = new wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Courier 10 Pitch"));
     m_notebook = new wxAuiNotebook(
@@ -108,47 +182,75 @@ ConnectionPanel::ConnectionPanel(wxWindow *parent, RedisConnection *connection):
     m_notebook->AddPage(rawCommandPanel, wxT("Raw Commands"));
 
     wxBoxSizer *sizerMain = new wxBoxSizer(wxHORIZONTAL);
-    sizerMain->Add(m_notebook, 1, wxEXPAND | wxALL, 5);
+    sizerMain->Add(m_notebook, 1, wxEXPAND | wxALL, 3);
     SetSizer(sizerMain);
     Layout();
 
-    m_timer = new wxTimer(this, ID_TIMER);
-    m_timer->Start(1000);
-
-    Connect(ID_TIMER, wxEVT_TIMER, wxTimerEventHandler(ConnectionPanel::OnTimer));
     Connect(ID_COMMAND_FIND_KEYS, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(ConnectionPanel::OnFind));
     Connect(ID_TEXT_KEY, wxEVT_COMMAND_TEXT_ENTER, wxKeyEventHandler(ConnectionPanel::OnEnterKey));
     Connect(ID_LBOX_KEYS, wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler(ConnectionPanel::OnKeySelected));
     Connect(ID_LBOX_KEYS, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, wxCommandEventHandler(ConnectionPanel::OnKeyDoubleClicked));
     Connect(ID_COMMAND_RAW, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(ConnectionPanel::OnRawCommand));
     Connect(ID_TEXT_COMMAND, wxEVT_COMMAND_TEXT_ENTER, wxKeyEventHandler(ConnectionPanel::OnEnterKey));
-//    Bind(wxEVT_SIZE, &ConnectionPanel::OnSize, this);
     Connect(ID_SERVER_INFO_GROUP_CHOICES, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, wxCommandEventHandler(ConnectionPanel::OnGroupSelected));
 
-    PopulateServerInfoGroups();
+    Bind(wxEVT_MONITOR_SYSTEM_STATS, &ConnectionPanel::OnMonitorSystemStat, this);
+    Bind(wxEVT_MONITOR_SERVER_INFO, &ConnectionPanel::OnMonitorServerInfo, this);
+
+    Bind(wxEVT_MONITOR_CONNECTED, [=](wxThreadEvent &evt) {
+        UpdateServerStatusInfo(wxEmptyString); // clear state
+        auto data = evt.GetPayload<wxArrayString>();
+        PopulateServerInfoGroups(data);
+    });
+
+    Bind(wxEVT_MONITOR_ERROR, [=](wxThreadEvent &evt) {
+        UpdateServerStatusInfo(evt.GetString());
+    });
+
+    UpdateServerStatusInfo(wxT("Connecting..."));
+
+    StartMonitor();
 }
 
 ConnectionPanel::~ConnectionPanel()
 {
-    if (m_connection != NULL)
-    {
-        delete m_connection;
-        m_connection = NULL;
-    }
+    Cleanup();
 
     delete m_rawCommandFont;
 }
 
-void ConnectionPanel::OnSize(wxSizeEvent &evt)
+void ConnectionPanel::UpdateServerStatusInfo(const wxString &status)
 {
-//    wxLogMessage("OnSize(): %d %d", evt.GetSize().GetWidth(), evt.GetSize().GetHeight());
+    ServerInfoPanel *siPanel = (ServerInfoPanel*)FindWindow(ID_SERVER_INFO);
+    if (siPanel)
+        siPanel->SetStatusInfo(status);
+}
 
-    Layout();
+void ConnectionPanel::OnMonitorSystemStat(wxThreadEvent &evt)
+{
+    auto systemStat = evt.GetPayload<RedisSystemStatus>();
 
-    if (m_notebook) {
-//        m_notebook->InvalidateBestSize();
-//        m_notebook->Layout();
+    TimeLogChart *memChart = (TimeLogChart *)FindWindow(ID_MEMORY_CHART);
+    if (memChart != NULL)
+    {
+        memChart->AddChartValue(0, (double)systemStat.GetUsed());
+        memChart->AddChartValue(1, (double)systemStat.GetPeak());
+        memChart->AddChartValue(2, (double)systemStat.GetRss());
     }
+
+    TimeLogChart *cpuChart = (TimeLogChart *)FindWindow(ID_CPU_CHART);
+    if (cpuChart != NULL)
+    {
+        cpuChart->AddChartValue(0, systemStat.GetCPUSys());
+        cpuChart->AddChartValue(1, systemStat.GetCPUUser());
+    }
+}
+
+void ConnectionPanel::OnMonitorServerInfo(wxThreadEvent &evt)
+{
+    ServerInfoPanel *siPanel = (ServerInfoPanel*)FindWindow(ID_SERVER_INFO);
+    if (siPanel != NULL)
+       siPanel->UpdateInfo(evt.GetPayload<wxArrayString>());
 }
 
 void ConnectionPanel::OnGroupSelected(wxCommandEvent &evt)
@@ -180,13 +282,12 @@ wxArrayString ConnectionPanel::GetServerInfoGroupsFromConfig()
     return selectedInfoGroups;
 }
 
-void ConnectionPanel::PopulateServerInfoGroups()
+void ConnectionPanel::PopulateServerInfoGroups(wxArrayString &infos)
 {
     wxCheckListBox *groups = (wxCheckListBox*)FindWindow(ID_SERVER_INFO_GROUP_CHOICES);
-    if (m_connection != NULL && m_connection->IsConnected() && groups != NULL)
+    if (groups != NULL)
     {
         wxArrayString selectedInfoGroups = GetServerInfoGroupsFromConfig();
-        wxArrayString infos = m_connection->GetServerInfo();
         for (int i = 0; i < infos.GetCount(); i++)
         {
             if (infos[i].StartsWith(wxT("#")))
@@ -194,9 +295,7 @@ void ConnectionPanel::PopulateServerInfoGroups()
                 wxString groupName = infos[i].SubString(2, infos[i].Length());
                 int n = groups->Append(groupName);
                 if (selectedInfoGroups.Index(groupName, false) != -1)
-                {
                     groups->Check(n);
-                }
             }
         }
 
@@ -204,34 +303,21 @@ void ConnectionPanel::PopulateServerInfoGroups()
         if (siPanel != NULL)
             siPanel->SetSelectedGroups(selectedInfoGroups);
     }
+
+    m_notebook->GetPage(0)->InvalidateBestSize();
+    m_notebook->GetPage(0)->Layout();
 }
 
-void ConnectionPanel::OnTimer(wxTimerEvent &evt)
+void ConnectionPanel::StartMonitor()
 {
-    if (m_connection != NULL && m_connection->IsConnected())
-    {
-        RedisSystemStatus sysStats = m_connection->GetMemoryStatus();
+    if (m_monitorThread)
+        Cleanup();
 
-        TimeLogChart *memChart = (TimeLogChart *)FindWindow(ID_MEMORY_CHART);
-        if (memChart != NULL)
-        {
-            memChart->AddChartValue(0, (double)sysStats.GetUsed());
-            memChart->AddChartValue(1, (double)sysStats.GetPeak());
-            memChart->AddChartValue(2, (double)sysStats.GetRss());
-        }
-
-        TimeLogChart *cpuChart = (TimeLogChart *)FindWindow(ID_CPU_CHART);
-        if (cpuChart != NULL)
-        {
-            cpuChart->AddChartValue(0, sysStats.GetCPUSys());
-            cpuChart->AddChartValue(1, sysStats.GetCPUUser());
-        }
-
-        ServerInfoPanel *siPanel = (ServerInfoPanel*)FindWindow(ID_SERVER_INFO);
-        if (siPanel != NULL)
-        {
-            siPanel->UpdateInfo(m_connection->GetServerInfo());
-        }
+    m_monitorThread = new MonitorThread(this, m_redisHost, m_redisPort, m_redisPassword);
+    if (m_monitorThread->Run() != wxTHREAD_NO_ERROR) {
+        wxLogError("Error while starting the monitor thread");
+        delete m_monitorThread;
+        m_monitorThread = NULL;
     }
 }
 
@@ -302,7 +388,7 @@ void ConnectionPanel::OnEnterKey(wxKeyEvent& evt)
 
 void ConnectionPanel::OnDisconnect(wxCommandEvent& evt)
 {
-    CloseConnection();
+    Cleanup();
 }
 
 void ConnectionPanel::ExecuteCommand(const wxString &command)
@@ -335,23 +421,32 @@ void ConnectionPanel::FindKeys(const wxString& keyFilter)
     }
 }
 
-void ConnectionPanel::CloseConnection()
+void ConnectionPanel::Cleanup()
 {
-    if (m_timer != NULL)
+    // start of thread termination
     {
-        m_timer->Stop();
-        delete m_timer;
-        m_timer = NULL;
-    }
-
-    wxNotebook *nb = ((wxNotebook*)GetParent());
-    for (int i = 0; i < nb->GetPageCount(); i++)
-    {
-        if (nb->GetPage(i) == this) {
-            nb->DeletePage(i);
-            break;
+        wxCriticalSectionLocker enter(m_csection);
+        if (m_monitorThread != NULL) {
+            if (m_monitorThread->Delete() != wxTHREAD_NO_ERROR)
+                wxLogError("Error while deleting thread !");
         }
     }
+
+    while (true) {
+        {
+            wxCriticalSectionLocker enter(m_csection);
+            if (!m_monitorThread) break;
+        }
+        wxThread::This()->Sleep(1);
+    }
+    // end of thread termination
+
+    if (m_connection != NULL) {
+        delete m_connection;
+        m_connection = NULL;
+    }
+
+    wxMessageOutputDebug().Printf("Cleanup");
 }
 
 void ConnectionPanel::EditKeyValue()

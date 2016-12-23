@@ -2,6 +2,7 @@
 #define QUERYPANEL_H
 
 #include <wx/bookctrl.h>
+#include <wx/thread.h>
 
 #include "redisconnection.h"
 
@@ -16,6 +17,7 @@ class wxTimerEvent;
 class wxTimer;
 class wxFont;
 class wxOnSizeEvent;
+class wxEventHandler;
 
 enum {
     ID_COMMAND_FIND_KEYS = 200,
@@ -34,6 +36,28 @@ enum {
     ID_SERVER_INFO
 };
 
+
+wxDECLARE_EVENT(wxEVT_MONITOR_SYSTEM_STATS, wxThreadEvent);
+wxDECLARE_EVENT(wxEVT_MONITOR_SERVER_INFO, wxThreadEvent);
+wxDECLARE_EVENT(wxEVT_MONITOR_CONNECTED, wxThreadEvent);
+wxDECLARE_EVENT(wxEVT_MONITOR_ERROR, wxThreadEvent);
+
+class ConnectionPanel;
+class MonitorThread: public wxThread
+{
+public:
+    MonitorThread(ConnectionPanel *handler, const wxString&, int, const wxString&);
+    ~MonitorThread();
+
+protected:
+    virtual wxThread::ExitCode Entry();
+
+    ConnectionPanel  *m_handler;
+
+private:
+    RedisConnection *m_connection;
+};
+
 class ConnectionPanel : public wxPanel
 {
 private:
@@ -42,12 +66,19 @@ private:
     wxTimer     *m_timer;
     wxFont      *m_rawCommandFont;
     wxBookCtrlBase *m_notebook;
+    wxThread    *m_monitorThread;
+    wxCriticalSection m_csection;
+
+    wxString    m_redisHost;
+    wxString    m_redisPassword;
+    int m_redisPort;
+
+    friend class MonitorThread;
 
     wxListBox *GetKeyListBox() const;
     wxArrayString GetServerInfoGroupsFromConfig();
-    void PopulateServerInfoGroups();
+    void PopulateServerInfoGroups(wxArrayString&);
 
-    void OnTimer(wxTimerEvent& evt);
     void OnFind(wxCommandEvent& evt);
     void OnRawCommand(wxCommandEvent& evt);
     void OnEnterKey(wxKeyEvent& evt);
@@ -55,14 +86,18 @@ private:
     void OnKeySelected(wxCommandEvent& evt);
     void OnKeyDoubleClicked(wxCommandEvent& evt);
     void OnGroupSelected(wxCommandEvent& evt);
-    void OnSize(wxSizeEvent& evt);
 
+    void OnMonitorSystemStat(wxThreadEvent &evt);
+    void OnMonitorServerInfo(wxThreadEvent &evt);
+
+    void UpdateServerStatusInfo(const wxString&);
     void IterateArrayResponse(redisReply **response, size_t length);
     void FindKeys(const wxString& keyFilter);
     void ExecuteCommand(const wxString& command);
+    void StartMonitor();
 
 public:
-    ConnectionPanel(wxWindow *parent, RedisConnection *connection);
+    ConnectionPanel(wxWindow *parent, const wxString &host, int port, const wxString &passwd);
     virtual ~ConnectionPanel();
 
     wxString GetSearchText() const;
@@ -70,7 +105,7 @@ public:
 
     wxString GetCommandText() const;
 
-    void CloseConnection();
+    void Cleanup();
     void AddKeyValue();
     void EditKeyValue();
     void DeleteKey();
