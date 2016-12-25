@@ -75,6 +75,9 @@ private:
 
     friend class MonitorThread;
 
+
+    bool tryConnect();
+
     wxListBox *GetKeyListBox() const;
     wxArrayString GetServerInfoGroupsFromConfig();
     void PopulateServerInfoGroups(wxArrayString&);

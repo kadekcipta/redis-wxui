@@ -26,6 +26,7 @@ MainFrame::MainFrame(wxWindow* parent, wxWindowID id, const wxString& title, con
     InitializeControls();
     Center();
     SetMinClientSize(wxSize(300, 350));
+    SetBackgroundColour(*wxRED);
 }
 
 void MainFrame::InitializeControls()
@@ -44,7 +45,7 @@ void MainFrame::InitializeControls()
     ((wxAuiNotebook*)m_mainTab)->SetArtProvider(tabArtProvider);
 
     wxBoxSizer *sizerMain = new wxBoxSizer(wxVERTICAL);
-    sizerMain->Add(m_mainTab, 1, wxBOTTOM | wxEXPAND, 0);
+    sizerMain->Add(m_mainTab, 1, wxEXPAND | wxALL, 10);
     SetSizer(sizerMain);
     Layout();
 }

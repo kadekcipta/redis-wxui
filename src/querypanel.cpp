@@ -40,8 +40,6 @@ MonitorThread::MonitorThread(ConnectionPanel *handler, const wxString& host, int
 
 MonitorThread::~MonitorThread()
 {
-    wxMessageOutputDebug().Printf("~MonitorThread()");
-
     wxCriticalSectionLocker enter(m_handler->m_csection);
     m_handler->m_monitorThread = NULL;
     if (m_connection) {
@@ -52,9 +50,6 @@ MonitorThread::~MonitorThread()
 
 wxThread::ExitCode MonitorThread::Entry()
 {
-    wxMessageOutputDebug().Printf("MonitorThread::Entry()");
-    wxMessageOutputDebug().Printf("Connecting to %s:%d", m_connection->GetRemoteHost(), m_connection->GetRemotePort());
-
     if (!m_connection->Connect()) {
         // report error
         auto evtError = new wxThreadEvent(wxEVT_MONITOR_ERROR);
@@ -148,7 +143,6 @@ ConnectionPanel::ConnectionPanel(wxWindow *parent,
     wxTextCtrl *txtKeysSearch = new wxTextCtrl(keysSearchingPanel, ID_TEXT_KEY, wxEmptyString, wxDefaultPosition, wxSize(-1, 28), wxTE_PROCESS_ENTER, wxDefaultValidator);
     wxButton *btnKeySearch = new wxButton(keysSearchingPanel, ID_COMMAND_FIND_KEYS, wxT("Find"), wxPoint(-1,-1), wxSize(-1, 28));
     wxListBox *lboxKeys = new wxListBox(keysSearchingPanel, ID_LBOX_KEYS, wxDefaultPosition, wxDefaultSize);
-
     wxBoxSizer *hboxKeysSearch = new wxBoxSizer(wxHORIZONTAL);
     hboxKeysSearch->Add(txtKeysSearch, 1, wxEXPAND);
     hboxKeysSearch->Add(btnKeySearch, 0);
@@ -217,6 +211,20 @@ ConnectionPanel::~ConnectionPanel()
     Cleanup();
 
     delete m_rawCommandFont;
+}
+
+bool ConnectionPanel::tryConnect()
+{
+    if (m_connection != NULL)
+        return m_connection->IsConnected();
+
+    m_connection = new RedisConnection(m_redisHost, m_redisPort, m_redisPassword);
+    if (!m_connection->Connect()) {
+        delete m_connection;
+        m_connection = NULL;
+    }
+
+    return m_connection->IsConnected();
 }
 
 void ConnectionPanel::UpdateServerStatusInfo(const wxString &status)
@@ -393,6 +401,9 @@ void ConnectionPanel::OnDisconnect(wxCommandEvent& evt)
 
 void ConnectionPanel::ExecuteCommand(const wxString &command)
 {
+    if (!tryConnect())
+        return;
+
     if (!command.IsEmpty() && m_connection != NULL && m_connection->IsConnected())
     {
         RedisSimpleValue ret = m_connection->ExecuteCommand(command);
@@ -409,6 +420,9 @@ void ConnectionPanel::ExecuteCommand(const wxString &command)
 
 void ConnectionPanel::FindKeys(const wxString& keyFilter)
 {
+    if (!tryConnect())
+        return;
+
     GetKeyListBox()->Clear();
     if (m_connection)
     {
@@ -446,11 +460,13 @@ void ConnectionPanel::Cleanup()
         m_connection = NULL;
     }
 
-    wxMessageOutputDebug().Printf("Cleanup");
 }
 
 void ConnectionPanel::EditKeyValue()
 {
+    if (!tryConnect())
+        return;
+
     wxString key = GetSelectedKey();
     if (key != wxEmptyString && m_connection != NULL && m_connection->IsConnected())
     {
@@ -464,6 +480,9 @@ void ConnectionPanel::EditKeyValue()
 
 void ConnectionPanel::AddKeyValue()
 {
+    if (!tryConnect())
+        return;
+
     KeyValueEditorDialog dlg(this, wxT("Add Key-Value Pair"), wxEmptyString, RedisSimpleValue(wxEmptyString));
     if (dlg.ShowModal() == wxID_OK && m_connection != NULL && m_connection->IsConnected())
     {
@@ -473,6 +492,9 @@ void ConnectionPanel::AddKeyValue()
 
 void ConnectionPanel::DeleteKey()
 {
+    if (!tryConnect())
+        return;
+
     wxMessageDialog dlg(this, wxT("Are you sure to delete key: '" + GetSelectedKey() + "'' ?"), wxT("Delete Key"), wxNO_DEFAULT | wxYES_NO | wxCANCEL | wxICON_ASTERISK);
     if (dlg.ShowModal() == wxID_YES && m_connection != NULL && m_connection->IsConnected())
     {
@@ -489,6 +511,9 @@ void ConnectionPanel::DeleteKey()
 
 void ConnectionPanel::SelectDb()
 {
+    if (!tryConnect())
+        return;
+
     SelectDbdialog dlg(this, wxT("Select Database"), m_currentDb);
     if (dlg.ShowModal() == wxID_OK && m_connection != NULL && m_connection->IsConnected())
     {
@@ -503,6 +528,9 @@ void ConnectionPanel::SelectDb()
 
 void ConnectionPanel::ExpireKey()
 {
+    if (!tryConnect())
+        return;
+
     wxNumberEntryDialog dlg(this, wxEmptyString, wxT("Please set the expiration time in seconds"), wxT("Set Key Expiration"), 10, 1, 2147483647);
     if (dlg.ShowModal() == wxID_OK && m_connection != NULL && m_connection->IsConnected())
     {
